@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
 const TRANSLATION_PROMPTS: Record<string, string> = {
   "english->tiv": `You are a professional translator specializing in Tiv (a Benue-Congo language spoken in Benue State, Nigeria) and English.
 Translate the given English text into Tiv accurately.
@@ -37,11 +35,16 @@ const WHISPER_LANG: Record<string, string | undefined> = {
   idoma: undefined,
 };
 
+export const runtime = "nodejs";
+
 export async function POST(req: NextRequest) {
   try {
-    if (!process.env.OPENAI_API_KEY) {
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
       return NextResponse.json({ error: "OpenAI API key not configured" }, { status: 500 });
     }
+
+    const openai = new OpenAI({ apiKey });
 
     const formData = await req.formData();
     const audioFile = formData.get("audio") as File | null;
@@ -56,12 +59,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ transcript: "", translation: "", audioBase64: null });
     }
 
+    const whisperLang = WHISPER_LANG[sourceLang];
     const transcriptionResponse = await openai.audio.transcriptions.create({
       file: audioFile,
       model: "whisper-1",
       response_format: "text",
-      ...(WHISPER_LANG[sourceLang] ? { language: WHISPER_LANG[sourceLang] } : {}),
+      ...(whisperLang ? { language: whisperLang } : {}),
     } as Parameters<typeof openai.audio.transcriptions.create>[0]);
+
     const transcript = (transcriptionResponse as unknown as string).trim();
 
     if (!transcript || transcript.length === 0) {
@@ -84,14 +89,11 @@ export async function POST(req: NextRequest) {
     const translation = translationResponse.choices[0]?.message?.content?.trim() || "";
 
     const voice = TTS_VOICES[targetLang] ?? "nova";
-    const ttsText = targetLang === "english"
-      ? translation
-      : `${translation}`;
 
     const ttsResponse = await openai.audio.speech.create({
       model: "tts-1",
       voice,
-      input: ttsText,
+      input: translation,
       speed: 0.88,
     });
 
