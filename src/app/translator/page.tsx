@@ -1,1 +1,1 @@
-export { default } from "../../pages/TranslatorPage";
+export { default } from "../../views/TranslatorPage";

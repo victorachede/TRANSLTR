@@ -1,1 +1,1 @@
-export { default } from "../../pages/ProjectorPage";
+export { default } from "../../views/ProjectorPage";
