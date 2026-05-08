@@ -56,16 +56,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ transcript: "", translation: "", audioBase64: null });
     }
 
-    const whisperParams: Parameters<typeof openai.audio.transcriptions.create>[0] = {
+    const transcriptionResponse = await openai.audio.transcriptions.create({
       file: audioFile,
       model: "whisper-1",
       response_format: "text",
-    };
-    if (WHISPER_LANG[sourceLang]) {
-      whisperParams.language = WHISPER_LANG[sourceLang];
-    }
-
-    const transcriptionResponse = await openai.audio.transcriptions.create(whisperParams);
+      ...(WHISPER_LANG[sourceLang] ? { language: WHISPER_LANG[sourceLang] } : {}),
+    } as Parameters<typeof openai.audio.transcriptions.create>[0]);
     const transcript = (transcriptionResponse as unknown as string).trim();
 
     if (!transcript || transcript.length === 0) {
