@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { Eye, EyeOff, Check } from "lucide-react";
+import { Eye, EyeOff, Check, X } from "lucide-react";
 
 const STRENGTHS = [
   { label: "8+ characters", test: (p: string) => p.length >= 8 },
@@ -143,12 +143,15 @@ export default function RegisterPage() {
               </div>
 
               {password.length > 0 && (
-                <div className="flex gap-3 pt-1">
+                <div className="flex gap-3 pt-1 flex-wrap">
                   {STRENGTHS.map(s => {
                     const ok = s.test(password);
                     return (
                       <div key={s.label} className="flex items-center gap-1">
-                        <Check size={10} style={{ color: ok ? "var(--accent)" : "var(--text-tertiary)" }} />
+                        {ok
+                          ? <Check size={10} style={{ color: "var(--accent)" }} />
+                          : <X size={10} style={{ color: "var(--text-tertiary)" }} />
+                        }
                         <span className="label" style={{ fontSize: "0.6rem", color: ok ? "var(--accent)" : "var(--text-tertiary)" }}>{s.label}</span>
                       </div>
                     );

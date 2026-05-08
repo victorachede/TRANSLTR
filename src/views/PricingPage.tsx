@@ -144,11 +144,18 @@ export default function PricingPage() {
                     {plan.name}
                   </p>
                   <div className="flex items-end gap-1.5">
-                    <span className="stat-num text-5xl" style={{ color: "var(--text-primary)" }}>
-                      ${annual ? plan.price.annual : plan.price.monthly}
-                    </span>
-                    {plan.price.monthly > 0 && (
-                      <span className="text-sm mb-1.5" style={{ color: "var(--text-tertiary)" }}>/ mo</span>
+                    {plan.price.monthly === 0 ? (
+                      <span className="stat-num text-5xl" style={{ color: "var(--text-primary)" }}>Free</span>
+                    ) : (
+                      <>
+                        <span className="stat-num text-5xl" style={{ color: "var(--text-primary)" }}>
+                          ${annual ? plan.price.annual : plan.price.monthly}
+                        </span>
+                        <span className="text-sm mb-1.5" style={{ color: "var(--text-tertiary)" }}>/ mo</span>
+                        {annual && (
+                          <span className="text-xs mb-2 ml-1" style={{ color: "var(--accent)", fontFamily: "var(--font-mono)" }}>billed annually</span>
+                        )}
+                      </>
                     )}
                   </div>
                   <p className="text-xs leading-relaxed" style={{ color: "var(--text-secondary)" }}>{plan.tagline}</p>

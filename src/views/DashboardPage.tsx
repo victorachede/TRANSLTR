@@ -312,7 +312,7 @@ export default function DashboardPage() {
               </Panel>
             </div>
 
-            {/* Distribution + Hourly */}
+            {/* Distribution + Hourly — FIX: use md:grid-cols-3 and give hourly panel col-span-2 */}
             <div className="grid md:grid-cols-3 gap-5">
               <Panel title="Target Language" icon={Globe2}>
                 <div className="flex flex-col items-center gap-4 p-5">
@@ -337,20 +337,23 @@ export default function DashboardPage() {
                 </div>
               </Panel>
 
-              <Panel title="Activity by Hour" icon={Clock}>
-                <div className="p-5 col-span-2" style={{ gridColumn: "span 2" }}>
-                  <ResponsiveContainer width="100%" height={200}>
-                    <LineChart data={hourly} margin={{ top: 4, right: 4, left: -30, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="2 4" stroke="var(--border-subtle)" />
-                      <XAxis dataKey="hour" tick={TICK} {...AXIS} interval={3} />
-                      <YAxis tick={TICK} {...AXIS} />
-                      <Tooltip content={<TipContent />} cursor={{ stroke: "var(--border-strong)" }} />
-                      <Line type="monotone" dataKey="n" name="Translations" stroke="var(--accent)"
-                        strokeWidth={1.5} dot={false} activeDot={{ r: 3, fill: "var(--accent)" }} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </Panel>
+              {/* FIX: col-span on the wrapper div, not on the child div inside Panel */}
+              <div className="md:col-span-2">
+                <Panel title="Activity by Hour" icon={Clock}>
+                  <div className="p-5">
+                    <ResponsiveContainer width="100%" height={200}>
+                      <LineChart data={hourly} margin={{ top: 4, right: 4, left: -30, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="2 4" stroke="var(--border-subtle)" />
+                        <XAxis dataKey="hour" tick={TICK} {...AXIS} interval={3} />
+                        <YAxis tick={TICK} {...AXIS} />
+                        <Tooltip content={<TipContent />} cursor={{ stroke: "var(--border-strong)" }} />
+                        <Line type="monotone" dataKey="n" name="Translations" stroke="var(--accent)"
+                          strokeWidth={1.5} dot={false} activeDot={{ r: 3, fill: "var(--accent)" }} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </Panel>
+              </div>
             </div>
           </>
         ) : (

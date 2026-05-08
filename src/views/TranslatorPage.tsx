@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mic, Square, Radio, MessageSquare, Clock, Trash2, AlertCircle } from "lucide-react";
+import { Mic, Square, Radio, MessageSquare, Clock, Trash2, AlertCircle, ArrowLeftRight } from "lucide-react";
 import Link from "next/link";
 
 /* ─────────────────── Types ─────────────────────────────────── */
@@ -197,6 +197,8 @@ function SpeakerCard({ label, lang, otherLang, status, onTap, rec, disabled, las
 /* ─────────────────── Main page ──────────────────────────────── */
 export default function TranslatorPage() {
   const [mode, setMode]       = useState<AppMode>("solo");
+  // FIX: source and target are now both configurable, not source-fixed to English
+  const [source, setSource]   = useState<Language>("english");
   const [target, setTarget]   = useState<Language>("tiv");
   const [soloSt, setSoloSt]   = useState<Status>("idle");
   const [stA, setStA]         = useState<Status>("idle");
@@ -237,16 +239,16 @@ export default function TranslatorPage() {
 
   /* Solo speech */
   const solo = useSpeechRec(useCallback((t: string) => {
-    processText(t, "english", target, setSoloSt);
-  }, [processText, target]));
+    processText(t, source, target, setSoloSt);
+  }, [processText, source, target]));
 
-  /* Conv speech A */
+  /* Conv speech A — always EN → target */
   const recA = useSpeechRec(useCallback((t: string) => {
     if (busyRef.current) return; busyRef.current = true;
     processText(t, "english", target, setStA, "a").then(() => { busyRef.current = false; });
   }, [processText, target]));
 
-  /* Conv speech B */
+  /* Conv speech B — always target → EN */
   const recB = useSpeechRec(useCallback((t: string) => {
     if (busyRef.current) return; busyRef.current = true;
     processText(t, target, "english", setStB, "b").then(() => { busyRef.current = false; });
@@ -254,7 +256,7 @@ export default function TranslatorPage() {
 
   const toggleSolo = () => {
     if (solo.on) { solo.stop(); setSoloSt("idle"); }
-    else { setSoloSt("listening"); solo.start("english"); }
+    else { setSoloSt("listening"); solo.start(source); }
   };
 
   const tapA = () => {
@@ -269,16 +271,31 @@ export default function TranslatorPage() {
     setStB("listening"); recB.start(target);
   };
 
-  const switchMode = (m: AppMode) => {
+  const stopAll = () => {
     solo.stop(); recA.stop(); recB.stop();
     setSoloSt("idle"); setStA("idle"); setStB("idle");
-    setMode(m);
   };
 
-  const switchTarget = (l: Language) => { switchMode(mode); setTarget(l); };
+  const switchMode = (m: AppMode) => { stopAll(); setMode(m); };
+  const switchSource = (l: Language) => { stopAll(); setSource(l); };
+  const switchTarget = (l: Language) => { stopAll(); setTarget(l); };
+
+  // FIX: swap source/target
+  const swapLangs = () => {
+    stopAll();
+    // Only allow swap if the other lang is english (since we only support EN↔indigenous)
+    const newSrc = target;
+    const newTgt = source;
+    setSource(newSrc);
+    setTarget(newTgt);
+  };
 
   const convALast = history.filter(e => e.speaker === "a").at(-1);
   const convBLast = history.filter(e => e.speaker === "b").at(-1);
+
+  // All languages for source; target must differ from source
+  const allLangs: Language[] = ["english", "tiv", "idoma"];
+  const availableTargets = allLangs.filter(l => l !== source);
 
   return (
     <div className="min-h-screen pt-14" style={{ background: "var(--bg-base)" }}>
@@ -319,29 +336,61 @@ export default function TranslatorPage() {
           </Link>
         </div>
 
-        {/* ── Language bar ── */}
-        <div className="flex items-center gap-3">
-          <div className="flex-1 flex items-center gap-3 px-4 py-3 rounded-md"
-            style={{ background: "var(--bg-surface)", border: "1px solid var(--border-subtle)" }}>
-            <span className="lang-badge" style={{ background: "var(--bg-elevated)", color: "var(--text-secondary)" }}>EN</span>
-            <span className="text-sm" style={{ color: "var(--text-primary)", fontFamily: "var(--font-display)" }}>English</span>
-            <span className="label ml-auto">source</span>
+        {/* ── Language bar ── FIX: bidirectional, with swap button */}
+        <div className="flex items-center gap-2">
+          {/* Source */}
+          <div className="flex-1 flex gap-1.5">
+            {allLangs.map(l => (
+              <button key={l}
+                onClick={() => {
+                  if (l === target) { swapLangs(); return; }
+                  switchSource(l);
+                  // ensure target differs
+                  if (target === l) switchTarget(allLangs.find(x => x !== l && x !== source) ?? "tiv");
+                }}
+                className="flex-1 flex items-center justify-center gap-1.5 px-2 py-2.5 rounded-md transition-all text-xs"
+                style={{
+                  background: source === l ? "var(--bg-elevated)" : "var(--bg-surface)",
+                  border: `1px solid ${source === l ? "var(--border-strong)" : "var(--border-subtle)"}`,
+                  color: source === l ? "var(--text-primary)" : "var(--text-tertiary)",
+                }}>
+                <span className="lang-badge" style={{
+                  background: source === l ? "var(--bg-overlay)" : "transparent",
+                  color: source === l ? "var(--text-primary)" : "var(--text-tertiary)",
+                }}>
+                  {LANG[l].code}
+                </span>
+                <span className="hidden sm:inline">{LANG[l].label}</span>
+              </button>
+            ))}
           </div>
-          <span style={{ color: "var(--text-tertiary)" }}>→</span>
-          <div className="flex gap-2 flex-1">
-            {(["tiv", "idoma"] as Language[]).map(l => (
-              <button key={l} onClick={() => switchTarget(l)}
-                className="flex-1 flex items-center gap-2.5 px-4 py-3 rounded-md transition-all"
+
+          {/* Swap */}
+          <button onClick={swapLangs}
+            className="flex items-center justify-center w-9 h-9 rounded-md transition-all hover:scale-105 active:scale-95 shrink-0"
+            style={{ border: "1px solid var(--border-default)", color: "var(--text-secondary)", background: "var(--bg-surface)" }}
+            title="Swap languages">
+            <ArrowLeftRight size={13} />
+          </button>
+
+          {/* Target */}
+          <div className="flex-1 flex gap-1.5">
+            {availableTargets.map(l => (
+              <button key={l}
+                onClick={() => switchTarget(l)}
+                className="flex-1 flex items-center justify-center gap-1.5 px-2 py-2.5 rounded-md transition-all text-xs"
                 style={{
                   background: target === l ? "var(--accent-dim)" : "var(--bg-surface)",
                   border: `1px solid ${target === l ? "var(--accent-border)" : "var(--border-subtle)"}`,
+                  color: target === l ? "var(--accent)" : "var(--text-tertiary)",
                 }}>
-                <span className="lang-badge" style={{ background: target === l ? "var(--accent)" : "var(--bg-elevated)", color: target === l ? "var(--text-inverse)" : "var(--text-secondary)" }}>
+                <span className="lang-badge" style={{
+                  background: target === l ? "var(--accent)" : "transparent",
+                  color: target === l ? "var(--text-inverse)" : "var(--text-tertiary)",
+                }}>
                   {LANG[l].code}
                 </span>
-                <span className="text-sm" style={{ color: target === l ? "var(--accent)" : "var(--text-secondary)", fontFamily: "var(--font-display)" }}>
-                  {LANG[l].label}
-                </span>
+                <span className="hidden sm:inline">{LANG[l].label}</span>
               </button>
             ))}
           </div>
@@ -358,7 +407,7 @@ export default function TranslatorPage() {
               {solo.on && soloSt === "listening" && <WaveBars />}
 
               <p className="text-xs" style={{ color: solo.on ? "var(--accent)" : "var(--text-tertiary)", fontFamily: "var(--font-body)" }}>
-                {!solo.on ? `Tap to speak — translates to ${LANG[target].label}`
+                {!solo.on ? `Tap to speak in ${LANG[source].label} — translates to ${LANG[target].label}`
                   : soloSt === "listening" ? "Listening…"
                   : soloSt === "processing" ? "Translating…"
                   : soloSt === "speaking" ? "Speaking…" : "Error — try again"}
@@ -413,7 +462,7 @@ export default function TranslatorPage() {
           )}
         </AnimatePresence>
 
-        {/* ── History ── */}
+        {/* ── History ── FIX: mobile-friendly layout */}
         {history.length > 0 && (
           <div className="rounded-lg overflow-hidden" style={{ border: "1px solid var(--border-subtle)" }}>
             <div className="flex items-center justify-between px-4 py-3"
@@ -432,18 +481,22 @@ export default function TranslatorPage() {
               </button>
             </div>
 
+            {/* FIX: responsive history rows — stack on mobile */}
             <div className="max-h-64 overflow-y-auto divide-y" style={{ borderColor: "var(--border-subtle)" }}>
               {[...history].reverse().map(e => (
-                <div key={e.id} className="px-4 py-3 grid grid-cols-[auto_1fr_1fr_auto] gap-3 items-center"
+                <div key={e.id} className="px-4 py-3 flex flex-col gap-1.5 sm:grid sm:grid-cols-[auto_1fr_1fr_auto] sm:items-center sm:gap-3"
                   style={{ background: "var(--bg-base)" }}>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1 shrink-0">
                     <span className="lang-badge" style={{ background: "var(--bg-elevated)", color: "var(--text-tertiary)" }}>{LANG[e.sourceLang].code}</span>
                     <span style={{ color: "var(--text-tertiary)", fontSize: 10 }}>→</span>
                     <span className="lang-badge" style={{ background: "var(--accent-dim)", color: "var(--accent)" }}>{LANG[e.targetLang].code}</span>
+                    <span className="label ml-2 sm:hidden" style={{ color: "var(--text-tertiary)" }}>
+                      {new Date(e.ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    </span>
                   </div>
                   <p className="text-xs truncate" style={{ color: "var(--text-secondary)" }}>{e.transcript}</p>
                   <p className="text-xs font-medium truncate" style={{ color: "var(--accent)" }}>{e.translation}</p>
-                  <span className="label whitespace-nowrap">
+                  <span className="label whitespace-nowrap hidden sm:block">
                     {new Date(e.ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                   </span>
                 </div>
