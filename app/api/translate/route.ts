@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import OpenAI from "openai";
+
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 const TRANSLATION_PROMPTS: Record<string, string> = {
   "english->tiv": `You are a professional translator specializing in Tiv (a Benue-Congo language spoken in Benue State, Nigeria) and English.
@@ -35,8 +37,6 @@ const WHISPER_LANG: Record<string, string | undefined> = {
   idoma: undefined,
 };
 
-export const runtime = "nodejs";
-
 export async function POST(req: NextRequest) {
   try {
     const apiKey = process.env.OPENAI_API_KEY;
@@ -44,6 +44,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "OpenAI API key not configured" }, { status: 500 });
     }
 
+    // Lazy import — never runs at build time
+    const { default: OpenAI } = await import("openai");
     const openai = new OpenAI({ apiKey });
 
     const formData = await req.formData();
@@ -87,7 +89,6 @@ export async function POST(req: NextRequest) {
     });
 
     const translation = translationResponse.choices[0]?.message?.content?.trim() || "";
-
     const voice = TTS_VOICES[targetLang] ?? "nova";
 
     const ttsResponse = await openai.audio.speech.create({
