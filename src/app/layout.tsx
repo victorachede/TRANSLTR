@@ -1,44 +1,34 @@
 import type { Metadata } from "next";
+import { Instrument_Serif, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import Nav from "../components/Nav";
 
+const serif = Instrument_Serif({
+  weight: ["400"],
+  style: ["normal", "italic"],
+  subsets: ["latin"],
+  variable: "--font-display",
+});
+
+const sans = Plus_Jakarta_Sans({
+  weight: ["400", "500", "600", "700", "800"],
+  subsets: ["latin"],
+  variable: "--font-body",
+});
+
 export const metadata: Metadata = {
   title: "TRANSLTR — Real-time Speech Translation",
-  description:
-    "Real-time speech-to-speech translation between English, Tiv, and Idoma. No API key, no uploads — powered entirely by your browser.",
+  description: "Speak Tiv. Speak Idoma. Be heard. Real-time speech-to-speech translation built for Benue State.",
   openGraph: {
     title: "TRANSLTR — Real-time Speech Translation",
-    description:
-      "Speak English, hear it in Tiv or Idoma instantly. Two-way conversation mode, projector view, and a full translation dashboard.",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "TRANSLTR — Real-time Speech Translation",
-    description:
-      "Browser-native speech translation for English, Tiv, and Idoma. No API keys required.",
+    description: "Speak Tiv. Speak Idoma. Be heard.",
+    images: ["/opengraph.jpg"],
   },
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
-          rel="stylesheet"
-        />
-      </head>
+    <html lang="en" className={`${serif.variable} ${sans.variable}`}>
       <body>
         <Nav />
         {children}

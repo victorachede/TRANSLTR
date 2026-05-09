@@ -3,15 +3,24 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Mic, LayoutDashboard, ExternalLink, LogIn, Menu, X } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 
 export default function Nav() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => { setOpen(false); }, [pathname]);
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   if (pathname === "/projector") return null;
 
-  const navLinks = [
+  const links = [
     { href: "/translator", label: "Translator", icon: Mic },
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   ];
@@ -19,37 +28,37 @@ export default function Nav() {
   return (
     <>
       <header
-        className="fixed top-0 left-0 right-0 z-50"
+        className="fixed top-0 left-0 right-0 z-50 transition-all duration-200"
         style={{
-          borderBottom: "1px solid var(--border-subtle)",
-          background: "rgba(6,6,6,0.85)",
+          background: scrolled ? "rgba(249,248,244,0.92)" : "rgba(249,248,244,0.7)",
           backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
+          borderBottom: scrolled ? "1px solid var(--border-default)" : "1px solid transparent",
         }}
       >
-        <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2.5 group" onClick={() => setOpen(false)}>
+        <div className="max-w-6xl mx-auto px-5 h-14 flex items-center justify-between">
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-2 group">
             <div
-              className="w-7 h-7 rounded-md flex items-center justify-center text-xs font-bold"
-              style={{ background: "var(--accent)", color: "var(--text-inverse)", fontFamily: "var(--font-display)" }}
+              className="w-7 h-7 rounded-md flex items-center justify-center text-xs font-bold transition-transform group-hover:scale-95"
+              style={{ background: "var(--accent)", color: "#fff", fontFamily: "var(--font-display)", fontStyle: "italic" }}
             >T</div>
-            <span className="text-sm font-semibold tracking-tight"
-              style={{ fontFamily: "var(--font-display)", color: "var(--text-primary)" }}>
+            <span className="text-sm font-bold tracking-tight hidden sm:block" style={{ fontFamily: "var(--font-body)", color: "var(--text-primary)", letterSpacing: "-0.02em" }}>
               TRANSLTR
             </span>
           </Link>
 
           {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-1">
-            {navLinks.map(({ href, label, icon: Icon }) => {
+            {links.map(({ href, label, icon: Icon }) => {
               const active = pathname === href;
               return (
                 <Link key={href} href={href}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-150 ${active ? "nav-dot" : ""}`}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
                   style={{
+                    color: active ? "var(--accent)" : "var(--text-secondary)",
+                    background: active ? "var(--accent-dim)" : "transparent",
                     fontFamily: "var(--font-body)",
-                    color: active ? "var(--text-primary)" : "var(--text-secondary)",
-                    background: active ? "var(--bg-elevated)" : "transparent",
-                    border: active ? "1px solid var(--border-default)" : "1px solid transparent",
                   }}>
                   <Icon size={12} />{label}
                 </Link>
@@ -57,93 +66,83 @@ export default function Nav() {
             })}
 
             <Link href="/projector" target="_blank"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs transition-colors ml-1"
-              style={{ color: "var(--text-tertiary)", fontFamily: "var(--font-mono)", fontSize: "0.65rem", letterSpacing: "0.05em", border: "1px solid var(--border-subtle)" }}>
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-colors ml-1"
+              style={{ color: "var(--text-tertiary)", fontFamily: "var(--font-mono)", fontSize: "0.65rem", letterSpacing: "0.04em" }}>
               <ExternalLink size={10} />LIVE VIEW
             </Link>
 
-            <div style={{ width: "1px", height: "20px", background: "var(--border-subtle)", margin: "0 8px" }} />
+            <div style={{ width: "1px", height: "18px", background: "var(--border-default)", margin: "0 6px" }} />
 
             <Link href="/pricing"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs transition-colors"
+              className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
               style={{
                 color: pathname === "/pricing" ? "var(--accent)" : "var(--text-secondary)",
-                fontFamily: "var(--font-body)",
-                border: "1px solid transparent",
+                background: pathname === "/pricing" ? "var(--accent-dim)" : "transparent",
               }}>
               Pricing
             </Link>
 
             <Link href="/login"
-              className="flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-semibold transition-all hover:opacity-90"
-              style={{ background: "var(--accent)", color: "var(--text-inverse)", fontFamily: "var(--font-display)", marginLeft: "4px" }}>
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:opacity-90 active:scale-[0.97] ml-1"
+              style={{ background: "var(--accent)", color: "#fff", fontFamily: "var(--font-body)" }}>
               <LogIn size={11} />Sign in
             </Link>
           </nav>
 
-          {/* Mobile: sign in + hamburger */}
-          <div className="flex md:hidden items-center gap-2">
-            <Link href="/login"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold"
-              style={{ background: "var(--accent)", color: "var(--text-inverse)", fontFamily: "var(--font-display)" }}>
-              <LogIn size={11} />Sign in
-            </Link>
-            <button
-              onClick={() => setOpen(o => !o)}
-              className="flex items-center justify-center w-8 h-8 rounded-md transition-colors"
-              style={{ border: "1px solid var(--border-default)", color: "var(--text-secondary)", background: "var(--bg-surface)" }}
-              aria-label="Toggle menu">
-              {open ? <X size={15} /> : <Menu size={15} />}
-            </button>
-          </div>
+          {/* Mobile hamburger */}
+          <button
+            className="md:hidden p-2 rounded-lg transition-colors"
+            style={{ color: "var(--text-primary)", background: open ? "var(--bg-elevated)" : "transparent" }}
+            onClick={() => setOpen(o => !o)}
+            aria-label="Toggle menu"
+          >
+            {open ? <X size={18} /> : <Menu size={18} />}
+          </button>
         </div>
       </header>
 
       {/* Mobile drawer */}
-      {open && (
-        <div className="fixed inset-0 z-40 md:hidden" onClick={() => setOpen(false)}>
-          <div
-            className="absolute top-14 left-0 right-0 flex flex-col"
-            style={{
-              background: "rgba(6,6,6,0.97)",
-              backdropFilter: "blur(20px)",
-              borderBottom: "1px solid var(--border-default)",
-            }}
-            onClick={e => e.stopPropagation()}
-          >
-            {navLinks.map(({ href, label, icon: Icon }) => {
-              const active = pathname === href;
-              return (
-                <Link key={href} href={href}
-                  onClick={() => setOpen(false)}
-                  className="flex items-center gap-3 px-6 py-4 text-sm font-medium transition-colors"
-                  style={{
-                    color: active ? "var(--accent)" : "var(--text-secondary)",
-                    borderBottom: "1px solid var(--border-subtle)",
-                    background: active ? "var(--bg-elevated)" : "transparent",
-                  }}>
-                  <Icon size={14} />{label}
-                </Link>
-              );
-            })}
-            <Link href="/pricing"
+      <AnimatePresence>
+        {open && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="fixed inset-0 z-40 md:hidden"
+              style={{ background: "rgba(0,0,0,0.15)", top: "56px" }}
               onClick={() => setOpen(false)}
-              className="flex items-center gap-3 px-6 py-4 text-sm font-medium transition-colors"
-              style={{
-                color: pathname === "/pricing" ? "var(--accent)" : "var(--text-secondary)",
-                borderBottom: "1px solid var(--border-subtle)",
-              }}>
-              Pricing
-            </Link>
-            <Link href="/projector" target="_blank"
-              onClick={() => setOpen(false)}
-              className="flex items-center gap-3 px-6 py-4 text-sm transition-colors"
-              style={{ color: "var(--text-tertiary)", fontFamily: "var(--font-mono)", fontSize: "0.75rem" }}>
-              <ExternalLink size={13} />Open Projector view
-            </Link>
-          </div>
-        </div>
-      )}
+            />
+            <motion.nav
+              initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
+              className="fixed left-0 right-0 z-40 md:hidden px-4 pb-4"
+              style={{ top: "57px" }}
+            >
+              <div className="rounded-xl overflow-hidden"
+                style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)", boxShadow: "0 8px 40px rgba(0,0,0,0.12)" }}>
+                {[...links, { href: "/pricing", label: "Pricing", icon: null }, { href: "/projector", label: "Live View ↗", icon: null }].map(({ href, label, icon: Icon }, i) => (
+                  <Link key={href} href={href}
+                    className="flex items-center gap-3 px-5 py-4 text-sm font-semibold transition-colors"
+                    style={{
+                      color: pathname === href ? "var(--accent)" : "var(--text-primary)",
+                      background: pathname === href ? "var(--accent-dim)" : "transparent",
+                      borderBottom: i < 3 ? "1px solid var(--border-subtle)" : "none",
+                    }}>
+                    {Icon && <Icon size={15} style={{ color: "var(--text-tertiary)" }} />}
+                    {label}
+                  </Link>
+                ))}
+                <div className="p-3" style={{ borderTop: "1px solid var(--border-subtle)" }}>
+                  <Link href="/login"
+                    className="flex items-center justify-center gap-2 w-full py-3 rounded-lg text-sm font-bold"
+                    style={{ background: "var(--accent)", color: "#fff" }}>
+                    <LogIn size={14} />Sign in
+                  </Link>
+                </div>
+              </div>
+            </motion.nav>
+          </>
+        )}
+      </AnimatePresence>
     </>
   );
 }

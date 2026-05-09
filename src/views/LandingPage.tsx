@@ -1,314 +1,347 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { motion, useInView } from "framer-motion";
+import { motion, useInView, useMotionValue, useSpring } from "framer-motion";
 import Link from "next/link";
-import { ArrowRight, ArrowUpRight, Mic } from "lucide-react";
+import { ArrowRight, Mic, Globe2, Radio, Shield, Zap, BarChart2, MessageSquare } from "lucide-react";
 
-/* ─────────────────── Types & Data ─────────────────────────── */
-
-const FEATURES = [
-  { tag: "01", title: "Browser-native", desc: "No downloads. No sign-ups. Speech recognition and synthesis run entirely in your browser via the Web Speech API.", accent: false },
-  { tag: "02", title: "English ↔ Tiv & Idoma", desc: "Built specifically for Benue State's indigenous languages — bridging English with Tiv and Idoma in real time.", accent: true },
-  { tag: "03", title: "Conversation mode", desc: "Two speakers, two languages. Hold a fluid bilingual exchange without touching the device between turns.", accent: false },
-  { tag: "04", title: "Projector view", desc: "Broadcast translations live to any large screen — built for events, lectures, clinics, and community gatherings.", accent: false },
-  { tag: "05", title: "Zero latency uploads", desc: "Your audio never leaves the device. Translation happens via a free public API. Private by design.", accent: false },
-  { tag: "06", title: "Session dashboard", desc: "Review every translation in your session — pair breakdowns, activity charts, and a searchable history table.", accent: false },
+const TICKER = [
+  { src: "Good morning", tgt: "Tswen sha", pair: "EN → TIV" },
+  { src: "How are you?", tgt: "Agba ngu?", pair: "EN → IDOMA" },
+  { src: "U mba iŋ le", tgt: "Thank you", pair: "TIV → EN" },
+  { src: "Elewoyi", tgt: "Good evening", pair: "IDOMA → EN" },
+  { src: "Where are you going?", tgt: "Ieren ngu?", pair: "EN → TIV" },
+  { src: "Oche ama", tgt: "I am well", pair: "IDOMA → EN" },
 ];
 
-const LANGUAGES = [
-  { code: "EN", name: "English", origin: "Global", speakers: "~1.5B", note: "Source & target language" },
-  { code: "TV", name: "Tiv", origin: "Benue State, Nigeria", speakers: "~8M", note: "Benue-Congo family · Tonal" },
-  { code: "ID", name: "Idoma", origin: "Southern Benue, Nigeria", speakers: "~1M", note: "Kwa family · Tonal" },
-];
-
-const HOW = [
-  { n: "1", head: "Tap the mic", body: "Press record and speak in English, Tiv, or Idoma." },
-  { n: "2", head: "Transcribed instantly", body: "Your browser captures and transcribes your voice in real time." },
-  { n: "3", head: "Translated & spoken", body: "The translation appears and is read aloud in the target language." },
-  { n: "4", head: "Broadcast it", body: "Open Projector view to display translations on any screen." },
-];
-
-/* ─────────────────── Animated counter ─────────────────────── */
-function Counter({ end, suffix = "" }: { end: number; suffix?: string }) {
-  const [v, setV] = useState(0);
+function Counter({ to, suffix = "" }: { to: number; suffix?: string }) {
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true });
+  const val = useMotionValue(0);
+  const spring = useSpring(val, { stiffness: 60, damping: 20 });
+  const [display, setDisplay] = useState(0);
+
   useEffect(() => {
-    if (!inView) return;
-    let n = 0;
-    const step = end / (900 / 16);
-    const t = setInterval(() => {
-      n = Math.min(n + step, end);
-      setV(Math.round(n));
-      if (n >= end) clearInterval(t);
-    }, 16);
-    return () => clearInterval(t);
-  }, [inView, end]);
-  return <span ref={ref}>{v}{suffix}</span>;
+    if (inView) val.set(to);
+  }, [inView, to, val]);
+
+  useEffect(() => {
+    return spring.on("change", v => setDisplay(Math.round(v)));
+  }, [spring]);
+
+  return <span ref={ref}>{display}{suffix}</span>;
 }
 
-/* ─────────────────── Section header ───────────────────────── */
-function SectionLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="label" style={{ color: "var(--accent)" }}>{children}</span>
-  );
-}
+const FEATURES = [
+  { icon: Mic, title: "No upload needed", body: "Everything runs in your browser via the Web Speech API. Your voice never leaves your device." },
+  { icon: Globe2, title: "3 languages, 1 click", body: "Translate between English, Tiv, and Idoma — the primary languages of Benue State." },
+  { icon: MessageSquare, title: "Conversation mode", body: "Two speakers, two mics. Real back-and-forth dialogue, translated as you go." },
+  { icon: Radio, title: "Projector view", body: "Fullscreen display for events, ceremonies, and churches. Open it on any screen." },
+  { icon: BarChart2, title: "Session analytics", body: "Track your translation history, language pairs, and usage patterns over time." },
+  { icon: Shield, title: "100% private", body: "No accounts required to start. No data stored. No servers. Just your browser." },
+];
 
-/* ─────────────────── Reveal wrapper ───────────────────────── */
-function Reveal({ children, delay = 0, className = "", style }: { children: React.ReactNode; delay?: number; className?: string; style?: React.CSSProperties }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-60px" }}
-      transition={{ duration: 0.55, delay, ease: [0.22, 1, 0.36, 1] }}
-      className={className}
-      style={style}>
-      {children}
-    </motion.div>
-  );
-}
+const stagger = {
+  visible: { transition: { staggerChildren: 0.08 } },
+};
+const item = {
+  hidden: { opacity: 0, y: 24 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.22,1,0.36,1] } },
+};
 
-/* ─────────────────── Page ──────────────────────────────────── */
 export default function LandingPage() {
+  const repeated = [...TICKER, ...TICKER];
+
   return (
-    <div className="min-h-screen" style={{ background: "var(--bg-base)" }}>
+    <main className="min-h-screen" style={{ background: "var(--bg-base)" }}>
 
-      {/* ══ HERO ══════════════════════════════════════════════ */}
-      <section className="relative pt-32 pb-28 px-6 overflow-hidden">
-        {/* Grid background — very subtle */}
-        <div className="absolute inset-0 grid-lines opacity-100 pointer-events-none" />
-        {/* Gradient bloom — single, restrained */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] pointer-events-none"
-          style={{ background: "radial-gradient(ellipse at top, rgba(0,214,143,0.06) 0%, transparent 70%)" }} />
+      {/* ── Hero ── */}
+      <section className="relative pt-32 pb-20 px-5 overflow-hidden">
+        <div className="absolute inset-0 grid-lines pointer-events-none opacity-100" />
+        <div className="absolute top-[-120px] left-1/2 -translate-x-1/2 w-[800px] h-[500px] pointer-events-none rounded-full"
+          style={{ background: "radial-gradient(ellipse, rgba(13,92,58,0.06) 0%, transparent 70%)" }} />
 
-        <div className="relative max-w-6xl mx-auto">
-          {/* Tag line */}
-          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.4 }}>
-            <span className="label" style={{ color: "var(--accent)" }}>
-              ● Real-time · No API key · Browser-native
-            </span>
+        <div className="relative max-w-5xl mx-auto">
+          <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
+            <span className="label" style={{ color: "var(--accent)" }}>● Live · Browser-native · Benue State</span>
           </motion.div>
 
-          {/* Headline */}
           <motion.h1
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className="mt-6 text-[clamp(3rem,8vw,7rem)] leading-[0.95] font-bold tracking-tighter"
-            style={{ fontFamily: "var(--font-display)", color: "var(--text-primary)", letterSpacing: "-0.04em" }}>
-            Speech<br />
-            <span className="brand-gradient">translated</span>.<br />
-            Instantly.
+            initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.12, duration: 0.7, ease: [0.22,1,0.36,1] }}
+            className="mt-5 text-5xl sm:text-6xl md:text-7xl lg:text-8xl leading-[0.95] tracking-tight"
+            style={{ fontFamily: "var(--font-display)", fontStyle: "italic", letterSpacing: "-0.03em", maxWidth: "14ch" }}
+          >
+            Speak Tiv.<br />
+            Speak Idoma.<br />
+            <span className="brand-gradient">Be heard.</span>
           </motion.h1>
 
-          {/* Body copy + CTAs */}
+          <motion.p
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }}
+            className="mt-7 text-base sm:text-lg leading-relaxed max-w-lg"
+            style={{ color: "var(--text-secondary)", fontFamily: "var(--font-body)" }}
+          >
+            Real-time speech-to-speech translation between English, Tiv, and Idoma.
+            No uploads. No API keys. No internet required. Just press and speak.
+          </motion.p>
+
           <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.35, duration: 0.5 }}
-            className="mt-10 flex flex-col sm:flex-row items-start gap-8 max-w-3xl">
-            <p className="text-base leading-relaxed max-w-sm shrink-0"
-              style={{ color: "var(--text-secondary)", fontFamily: "var(--font-body)" }}>
-              Real-time speech-to-speech translation between English, Tiv, and Idoma.
-              Designed for Benue State — built for everyone in it.
-            </p>
-            <div className="flex flex-wrap gap-3">
-              <Link href="/translator"
-                className="flex items-center gap-2 px-5 py-3 rounded-md text-sm font-semibold transition-all duration-150 hover:opacity-90 active:scale-[0.98]"
-                style={{ background: "var(--accent)", color: "var(--text-inverse)", fontFamily: "var(--font-display)" }}>
-                <Mic size={15} />Start translating
-              </Link>
-              <Link href="/dashboard"
-                className="flex items-center gap-2 px-5 py-3 rounded-md text-sm font-medium transition-all duration-150"
-                style={{ color: "var(--text-secondary)", border: "1px solid var(--border-default)", fontFamily: "var(--font-body)" }}>
-                View dashboard <ArrowRight size={14} />
-              </Link>
-            </div>
+            initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}
+            className="mt-8 flex flex-wrap gap-3"
+          >
+            <Link href="/translator"
+              className="flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-bold transition-all hover:opacity-90 active:scale-[0.97]"
+              style={{ background: "var(--accent)", color: "#fff", fontFamily: "var(--font-body)" }}>
+              <Mic size={14} />Start translating free
+            </Link>
+            <Link href="/pricing"
+              className="flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold transition-all hover:bg-[var(--bg-elevated)]"
+              style={{ border: "1px solid var(--border-default)", color: "var(--text-primary)", fontFamily: "var(--font-body)" }}>
+              View pricing <ArrowRight size={13} />
+            </Link>
           </motion.div>
 
-          {/* Language chips */}
+          {/* Floating demo card */}
           <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.55 }}
-            className="mt-10 flex flex-wrap gap-2">
-            {[
-              { code: "EN", label: "English" },
-              { code: "TV", label: "Tiv" },
-              { code: "ID", label: "Idoma" },
-            ].map(l => (
-              <div key={l.code}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-md"
-                style={{ border: "1px solid var(--border-default)", background: "var(--bg-surface)" }}>
-                <span className="lang-badge" style={{ background: "var(--accent-dim)", color: "var(--accent)" }}>{l.code}</span>
-                <span className="text-xs" style={{ color: "var(--text-secondary)", fontFamily: "var(--font-body)" }}>{l.label}</span>
+            initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.55, duration: 0.8, ease: [0.22,1,0.36,1] }}
+            className="mt-16 rounded-2xl overflow-hidden max-w-xl"
+            style={{ border: "1px solid var(--border-default)", background: "var(--bg-surface)", boxShadow: "0 20px 80px rgba(0,0,0,0.1)" }}
+          >
+            <div className="flex items-center gap-2 px-5 py-3" style={{ borderBottom: "1px solid var(--border-subtle)", background: "var(--bg-elevated)" }}>
+              <div className="flex gap-1.5">
+                {["#FF5F57","#FEBC2E","#28C840"].map(c => <div key={c} style={{ width: 10, height: 10, borderRadius: "50%", background: c }} />)}
               </div>
-            ))}
+              <span className="label mx-auto" style={{ letterSpacing: "0.12em" }}>TRANSLTR — Live demo</span>
+            </div>
+            <div className="p-6 space-y-4">
+              {[
+                { who: "Speaker A", text: "Good morning, how are you?", translated: "Tswen sha, agba ngu?", pair: "EN → TIV", delay: 0.7 },
+                { who: "Speaker B", text: "U mba iŋ le", translated: "Thank you very much", pair: "TIV → EN", delay: 1.1 },
+              ].map((msg) => (
+                <motion.div key={msg.who} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: msg.delay, duration: 0.5 }}>
+                  <div className="flex items-start gap-3">
+                    <div className="w-6 h-6 rounded-full shrink-0 flex items-center justify-center text-xs font-bold"
+                      style={{ background: "var(--accent-dim)", color: "var(--accent)", fontFamily: "var(--font-display)", fontStyle: "italic" }}>
+                      {msg.who.split(" ")[1]}
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>{msg.text}</p>
+                      <div className="mt-1 flex items-center gap-2 flex-wrap">
+                        <span className="lang-badge" style={{ background: "var(--accent-dim)", color: "var(--accent)" }}>{msg.translated}</span>
+                        <span className="label" style={{ fontSize: "0.6rem" }}>{msg.pair}</span>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.6 }}
+                className="flex items-center gap-2 pt-2">
+                <div className="flex items-center gap-1">
+                  {[0,1,2].map(i => (
+                    <motion.div key={i} className="w-1.5 h-1.5 rounded-full"
+                      style={{ background: "var(--accent)" }}
+                      animate={{ scaleY: [1, 2.5, 1], opacity: [0.4, 1, 0.4] }}
+                      transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.15 }} />
+                  ))}
+                </div>
+                <span className="label" style={{ color: "var(--accent)" }}>Listening…</span>
+              </motion.div>
+            </div>
           </motion.div>
         </div>
       </section>
 
-      {/* ══ STATS ═════════════════════════════════════════════ */}
-      <section style={{ borderTop: "1px solid var(--border-subtle)", borderBottom: "1px solid var(--border-subtle)", background: "var(--bg-surface)" }}>
-        <div className="max-w-6xl mx-auto px-6 py-16 grid grid-cols-2 md:grid-cols-4 gap-px"
-          style={{ background: "var(--border-subtle)" }}>
-          {[
-            { value: 3, suffix: "", label: "Languages" },
-            { value: 0, suffix: "ms", label: "Upload latency" },
-            { value: 100, suffix: "%", label: "Browser-native" },
-            { value: 2, suffix: "", label: "Translation modes" },
-          ].map((s, i) => (
-            <Reveal key={s.label} delay={i * 0.05}
-              className="flex flex-col gap-2 px-8 py-10" style={{ background: "var(--bg-surface)" } as React.CSSProperties}>
-              <p className="stat-num text-5xl" style={{ color: "var(--text-primary)" }}>
-                <Counter end={s.value} suffix={s.suffix} />
-              </p>
-              <p className="label">{s.label}</p>
-            </Reveal>
+      {/* ── Marquee ── */}
+      <div className="overflow-hidden py-4" style={{ borderTop: "1px solid var(--border-subtle)", borderBottom: "1px solid var(--border-subtle)", background: "var(--bg-elevated)" }}>
+        <div className="marquee-inner">
+          {repeated.map((t, i) => (
+            <div key={i} className="flex items-center gap-4 px-8 whitespace-nowrap">
+              <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>{t.src}</span>
+              <ArrowRight size={12} style={{ color: "var(--text-tertiary)" }} />
+              <span className="text-sm font-semibold" style={{ color: "var(--accent)" }}>{t.tgt}</span>
+              <span className="lang-badge">{t.pair}</span>
+              <span style={{ width: 1, height: 16, background: "var(--border-default)", display: "inline-block", margin: "0 8px" }} />
+            </div>
           ))}
         </div>
+      </div>
+
+      {/* ── Stats ── */}
+      <section className="py-20 px-5">
+        <motion.div
+          variants={stagger} initial="hidden" whileInView="visible" viewport={{ once: true }}
+          className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-px"
+          style={{ border: "1px solid var(--border-default)", borderRadius: 16, overflow: "hidden", background: "var(--border-default)" }}
+        >
+          {[
+            { label: "Languages", value: 3, suffix: "" },
+            { label: "Latency", value: 0, suffix: "ms upload" },
+            { label: "Setup required", value: 0, suffix: " minutes" },
+            { label: "Browser native", value: 100, suffix: "%" },
+          ].map((s) => (
+            <motion.div key={s.label} variants={item}
+              className="flex flex-col items-center justify-center py-10 px-6 text-center"
+              style={{ background: "var(--bg-surface)" }}>
+              <span className="stat-num text-4xl md:text-5xl" style={{ color: "var(--text-primary)" }}>
+                <Counter to={s.value} suffix={s.suffix} />
+              </span>
+              <span className="label mt-2">{s.label}</span>
+            </motion.div>
+          ))}
+        </motion.div>
       </section>
 
-      {/* ══ FEATURES ══════════════════════════════════════════ */}
-      <section className="py-28 px-6">
-        <div className="max-w-6xl mx-auto">
-          <Reveal className="mb-16 flex items-end justify-between flex-wrap gap-6">
-            <div className="space-y-3">
-              <SectionLabel>Capabilities</SectionLabel>
-              <h2 className="text-4xl md:text-5xl font-bold tracking-tighter"
-                style={{ fontFamily: "var(--font-display)", color: "var(--text-primary)", letterSpacing: "-0.04em" }}>
-                Built for real<br />conversations.
-              </h2>
-            </div>
-            <p className="text-sm max-w-xs leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-              Every feature exists because someone in Benue State needed it — at a clinic, a market, a school.
+      {/* ── How it works ── */}
+      <section className="py-20 px-5" style={{ borderTop: "1px solid var(--border-subtle)" }}>
+        <div className="max-w-5xl mx-auto">
+          <motion.div variants={stagger} initial="hidden" whileInView="visible" viewport={{ once: true }}>
+            <motion.span variants={item} className="label" style={{ color: "var(--accent)" }}>How it works</motion.span>
+            <motion.h2 variants={item}
+              className="mt-3 text-4xl md:text-5xl leading-tight"
+              style={{ fontFamily: "var(--font-display)", fontStyle: "italic", letterSpacing: "-0.03em", maxWidth: "16ch" }}>
+              Three steps.<br />Zero friction.
+            </motion.h2>
+          </motion.div>
+
+          <motion.div
+            variants={stagger} initial="hidden" whileInView="visible" viewport={{ once: true }}
+            className="mt-14 grid md:grid-cols-3 gap-8"
+          >
+            {[
+              { n: "01", title: "Open & choose languages", body: "Pick your source language and target language. No account needed." },
+              { n: "02", title: "Press mic and speak", body: "Your voice is captured and processed entirely in your browser." },
+              { n: "03", title: "Hear the translation", body: "The translated speech plays back instantly in the target language." },
+            ].map((s) => (
+              <motion.div key={s.n} variants={item} className="space-y-4">
+                <span className="stat-num text-6xl" style={{ color: "var(--border-strong)" }}>{s.n}</span>
+                <h3 className="text-lg font-bold" style={{ fontFamily: "var(--font-body)", letterSpacing: "-0.02em" }}>{s.title}</h3>
+                <p className="text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>{s.body}</p>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ── Features ── */}
+      <section className="py-20 px-5" style={{ background: "var(--bg-surface)", borderTop: "1px solid var(--border-subtle)" }}>
+        <div className="max-w-5xl mx-auto">
+          <motion.div variants={stagger} initial="hidden" whileInView="visible" viewport={{ once: true }}>
+            <motion.span variants={item} className="label" style={{ color: "var(--accent)" }}>Features</motion.span>
+            <motion.h2 variants={item}
+              className="mt-3 text-4xl md:text-5xl leading-tight"
+              style={{ fontFamily: "var(--font-display)", fontStyle: "italic", letterSpacing: "-0.03em" }}>
+              Built for real conversations.<br />
+              <span className="brand-gradient">Not demos.</span>
+            </motion.h2>
+          </motion.div>
+
+          <motion.div
+            variants={stagger} initial="hidden" whileInView="visible" viewport={{ once: true }}
+            className="mt-14 grid sm:grid-cols-2 md:grid-cols-3 gap-5"
+          >
+            {FEATURES.map((f) => (
+              <motion.div key={f.title} variants={item}
+                className="card-lift p-6 rounded-xl space-y-3"
+                style={{ border: "1px solid var(--border-subtle)", background: "var(--bg-base)" }}>
+                <div className="w-9 h-9 rounded-lg flex items-center justify-center"
+                  style={{ background: "var(--accent-dim)", border: "1px solid var(--accent-border)" }}>
+                  <f.icon size={16} style={{ color: "var(--accent)" }} />
+                </div>
+                <h3 className="font-bold text-sm" style={{ letterSpacing: "-0.02em" }}>{f.title}</h3>
+                <p className="text-xs leading-relaxed" style={{ color: "var(--text-secondary)" }}>{f.body}</p>
+              </motion.div>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ── Quote ── */}
+      <section className="py-24 px-5" style={{ borderTop: "1px solid var(--border-subtle)" }}>
+        <div className="max-w-3xl mx-auto text-center">
+          <motion.blockquote initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }} transition={{ duration: 0.7, ease: [0.22,1,0.36,1] }}>
+            <p className="text-3xl md:text-4xl leading-snug"
+              style={{ fontFamily: "var(--font-display)", fontStyle: "italic", letterSpacing: "-0.03em", color: "var(--text-primary)" }}>
+              &ldquo;Language is the road map of a culture. It tells you where its people come from and where they are going.&rdquo;
             </p>
-          </Reveal>
-
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-px" style={{ background: "var(--border-subtle)" }}>
-            {FEATURES.map((f, i) => (
-              <Reveal key={f.tag} delay={i * 0.06}>
-                <div className="feature-card h-full p-8 flex flex-col gap-6"
-                  style={{ background: f.accent ? "var(--accent-dim)" : "var(--bg-surface)", border: f.accent ? "1px solid var(--accent-border)" : "none" }}>
-                  <span className="label">{f.tag}</span>
-                  <div className="space-y-2 mt-auto">
-                    <h3 className="text-base font-semibold" style={{ fontFamily: "var(--font-display)", color: f.accent ? "var(--accent)" : "var(--text-primary)" }}>
-                      {f.title}
-                    </h3>
-                    <p className="text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>{f.desc}</p>
-                  </div>
-                </div>
-              </Reveal>
-            ))}
-          </div>
+            <cite className="label mt-6 block not-italic">Rita Mae Brown · adapted for Benue State</cite>
+          </motion.blockquote>
         </div>
       </section>
 
-      {/* ══ HOW IT WORKS ══════════════════════════════════════ */}
-      <section style={{ borderTop: "1px solid var(--border-subtle)", background: "var(--bg-surface)" }} className="py-28 px-6">
-        <div className="max-w-6xl mx-auto">
-          <Reveal className="mb-16">
-            <SectionLabel>Process</SectionLabel>
-            <h2 className="mt-3 text-4xl md:text-5xl font-bold tracking-tighter"
-              style={{ fontFamily: "var(--font-display)", color: "var(--text-primary)", letterSpacing: "-0.04em" }}>
-              Four steps to<br />instant translation.
+      {/* ── Pricing teaser ── */}
+      <section className="py-20 px-5" style={{ background: "var(--bg-elevated)", borderTop: "1px solid var(--border-subtle)", borderBottom: "1px solid var(--border-subtle)" }}>
+        <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
+          <motion.div initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }} transition={{ duration: 0.6 }}>
+            <span className="label" style={{ color: "var(--accent)" }}>Pricing</span>
+            <h2 className="mt-2 text-3xl md:text-4xl leading-tight"
+              style={{ fontFamily: "var(--font-display)", fontStyle: "italic", letterSpacing: "-0.03em" }}>
+              Free forever.<br />Upgrade when you&apos;re ready.
             </h2>
-          </Reveal>
-
-          <div className="grid md:grid-cols-4 gap-px" style={{ background: "var(--border-subtle)" }}>
-            {HOW.map((h, i) => (
-              <Reveal key={h.n} delay={i * 0.08}>
-                <div className="p-8 flex flex-col gap-8" style={{ background: "var(--bg-surface)" }}>
-                  <span className="stat-num text-6xl" style={{ color: "var(--border-strong)" }}>{h.n}</span>
-                  <div className="space-y-2">
-                    <h3 className="text-sm font-semibold" style={{ fontFamily: "var(--font-display)", color: "var(--text-primary)" }}>{h.head}</h3>
-                    <p className="text-xs leading-relaxed" style={{ color: "var(--text-secondary)" }}>{h.body}</p>
-                  </div>
-                </div>
-              </Reveal>
-            ))}
-          </div>
+            <p className="mt-3 text-sm" style={{ color: "var(--text-secondary)" }}>
+              Plans start from ₦0. Pro from ₦7,500/mo. No hidden fees.
+            </p>
+          </motion.div>
+          <motion.div initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }} transition={{ duration: 0.6, delay: 0.1 }}>
+            <Link href="/pricing"
+              className="flex items-center gap-2 px-6 py-3.5 rounded-xl text-sm font-bold hover:opacity-90 whitespace-nowrap"
+              style={{ background: "var(--accent)", color: "#fff", fontFamily: "var(--font-body)" }}>
+              See all plans <ArrowRight size={13} />
+            </Link>
+          </motion.div>
         </div>
       </section>
 
-      {/* ══ LANGUAGES ═════════════════════════════════════════ */}
-      <section style={{ borderTop: "1px solid var(--border-subtle)" }} className="py-28 px-6">
-        <div className="max-w-6xl mx-auto">
-          <Reveal className="mb-16 flex items-end justify-between flex-wrap gap-6">
-            <div className="space-y-3">
-              <SectionLabel>Supported languages</SectionLabel>
-              <h2 className="text-4xl md:text-5xl font-bold tracking-tighter"
-                style={{ fontFamily: "var(--font-display)", color: "var(--text-primary)", letterSpacing: "-0.04em" }}>
-                Three languages.<br />One conversation.
-              </h2>
-            </div>
-          </Reveal>
-
-          <div className="divide-y" style={{ borderTop: "1px solid var(--border-subtle)", borderBottom: "1px solid var(--border-subtle)" }}>
-            {LANGUAGES.map((l, i) => (
-              <Reveal key={l.code} delay={i * 0.08}>
-                <div className="py-8 grid grid-cols-[80px_1fr_1fr_1fr] items-center gap-8 feature-card px-2">
-                  <span className="stat-num text-3xl" style={{ color: "var(--accent)", fontFamily: "var(--font-mono)" }}>{l.code}</span>
-                  <div>
-                    <p className="text-base font-semibold" style={{ fontFamily: "var(--font-display)", color: "var(--text-primary)" }}>{l.name}</p>
-                    <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>{l.origin}</p>
-                  </div>
-                  <p className="text-xs" style={{ color: "var(--text-secondary)" }}>{l.speakers} speakers</p>
-                  <p className="text-xs label">{l.note}</p>
-                </div>
-              </Reveal>
-            ))}
+      {/* ── CTA ── */}
+      <section className="py-28 px-5 text-center relative overflow-hidden">
+        <div className="absolute inset-0 grid-lines opacity-100 pointer-events-none" />
+        <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }} transition={{ duration: 0.6 }}
+          className="relative max-w-2xl mx-auto space-y-6">
+          <h2 className="text-5xl md:text-6xl leading-tight"
+            style={{ fontFamily: "var(--font-display)", fontStyle: "italic", letterSpacing: "-0.04em" }}>
+            Start speaking.<br />
+            <span className="brand-gradient">Start connecting.</span>
+          </h2>
+          <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+            No sign-up required. Works on any modern browser.
+          </p>
+          <div className="flex flex-wrap gap-3 justify-center">
+            <Link href="/translator"
+              className="flex items-center gap-2 px-6 py-3.5 rounded-xl text-sm font-bold hover:opacity-90"
+              style={{ background: "var(--accent)", color: "#fff", fontFamily: "var(--font-body)" }}>
+              <Mic size={14} />Try it now — it&apos;s free
+            </Link>
+            <Link href="/register"
+              className="flex items-center gap-2 px-6 py-3.5 rounded-xl text-sm font-semibold"
+              style={{ border: "1px solid var(--border-default)", color: "var(--text-primary)", fontFamily: "var(--font-body)" }}>
+              Create account <ArrowRight size={13} />
+            </Link>
           </div>
-        </div>
+        </motion.div>
       </section>
 
-      {/* ══ CTA ═══════════════════════════════════════════════ */}
-      <section style={{ borderTop: "1px solid var(--border-subtle)", background: "var(--bg-surface)" }} className="py-28 px-6">
-        <div className="max-w-6xl mx-auto">
-          <Reveal className="flex flex-col md:flex-row items-start md:items-end justify-between gap-10">
-            <div className="space-y-5 max-w-lg">
-              <SectionLabel>Get started</SectionLabel>
-              <h2 className="text-5xl md:text-6xl font-bold tracking-tighter"
-                style={{ fontFamily: "var(--font-display)", color: "var(--text-primary)", letterSpacing: "-0.04em" }}>
-                Ready to start<br />
-                <span className="brand-gradient">a real conversation</span>?
-              </h2>
-              <p className="text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-                No downloads, no sign-ups, no API keys. Open the translator and speak.
-              </p>
-            </div>
-            <div className="flex flex-col gap-3 items-start md:items-end">
-              <Link href="/translator"
-                className="flex items-center gap-2.5 px-6 py-3.5 rounded-md text-sm font-semibold transition-all hover:opacity-90 active:scale-[0.98]"
-                style={{ background: "var(--accent)", color: "var(--text-inverse)", fontFamily: "var(--font-display)" }}>
-                <Mic size={15} />Launch Translator <ArrowRight size={14} />
-              </Link>
-              <Link href="/projector" target="_blank"
-                className="flex items-center gap-2 text-xs transition-colors"
-                style={{ color: "var(--text-tertiary)", fontFamily: "var(--font-mono)" }}>
-                Open projector view <ArrowUpRight size={11} />
-              </Link>
-            </div>
-          </Reveal>
-        </div>
-      </section>
-
-      {/* ══ FOOTER ════════════════════════════════════════════ */}
-      <footer style={{ borderTop: "1px solid var(--border-subtle)" }}>
-        <div className="max-w-6xl mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2.5">
-            <div className="w-6 h-6 rounded flex items-center justify-center text-[10px] font-bold"
-              style={{ background: "var(--accent)", color: "var(--text-inverse)", fontFamily: "var(--font-display)" }}>T</div>
-            <span className="text-xs font-semibold" style={{ fontFamily: "var(--font-display)", color: "var(--text-primary)" }}>TRANSLTR</span>
+      {/* ── Footer ── */}
+      <footer className="px-5 py-10" style={{ borderTop: "1px solid var(--border-subtle)" }}>
+        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded flex items-center justify-center text-xs font-bold"
+              style={{ background: "var(--accent)", color: "#fff", fontFamily: "var(--font-display)", fontStyle: "italic" }}>T</div>
+            <span className="text-sm font-bold" style={{ fontFamily: "var(--font-body)", letterSpacing: "-0.02em" }}>TRANSLTR</span>
+            <span className="label ml-2">Built for Benue State, Nigeria</span>
           </div>
-          <p className="label">English · Tiv · Idoma · Real-time speech translation</p>
           <div className="flex items-center gap-5">
-            {[{ href: "/translator", l: "Translator" }, { href: "/dashboard", l: "Dashboard" }, { href: "/projector", l: "Projector" }].map(x => (
-              <Link key={x.href} href={x.href} className="label transition-colors hover:text-white" style={{ color: "var(--text-tertiary)" }}>{x.l}</Link>
+            {[["Translator", "/translator"], ["Pricing", "/pricing"], ["Login", "/login"]].map(([l, h]) => (
+              <Link key={h} href={h} className="label hover:text-[var(--text-primary)] transition-colors">{l}</Link>
             ))}
           </div>
         </div>
       </footer>
-    </div>
+    </main>
   );
 }
