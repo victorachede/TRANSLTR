@@ -1,5 +1,6 @@
 @import "tailwindcss";
 
+/* ── Design tokens ── */
 :root {
   --bg-base:     #F9F8F4;
   --bg-surface:  #FFFFFF;
@@ -20,32 +21,31 @@
   --accent-warm:   #E8561A;
   --accent-dim:    rgba(13,92,58,0.07);
   --accent-border: rgba(13,92,58,0.18);
-
-  --font-display: var(--font-display, Georgia, serif);
-  --font-body:    var(--font-body, system-ui, sans-serif);
-  --font-mono:    'JetBrains Mono', ui-monospace, monospace;
 }
 
+/* ── Reset ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
 html { scroll-behavior: smooth; }
 
+/* ── Base ── */
 body {
   background: var(--bg-base);
   color: var(--text-primary);
-  font-family: var(--font-body);
+  /* --font-body is injected by Next.js font variable on <html> */
+  font-family: var(--font-body, 'Plus Jakarta Sans', system-ui, sans-serif);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ── Typography ── */
+/* ── Typography helpers ── */
 .display {
-  font-family: var(--font-display);
+  /* --font-display is injected by Next.js font variable on <html> */
+  font-family: var(--font-display, 'Instrument Serif', Georgia, serif);
   font-style: italic;
 }
 
 .stat-num {
-  font-family: var(--font-display);
+  font-family: var(--font-display, 'Instrument Serif', Georgia, serif);
   font-style: italic;
   font-weight: 400;
   line-height: 1;
@@ -57,7 +57,7 @@ body {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-tertiary);
-  font-family: var(--font-body);
+  font-family: var(--font-body, system-ui, sans-serif);
 }
 
 .lang-badge {
@@ -69,18 +69,18 @@ body {
   font-size: 0.65rem;
   font-weight: 700;
   letter-spacing: 0.06em;
-  font-family: var(--font-body);
+  font-family: var(--font-body, system-ui, sans-serif);
   background: var(--bg-elevated);
   color: var(--text-secondary);
 }
 
-/* ── Grid lines (subtle dot pattern) ── */
+/* ── Subtle dot grid ── */
 .grid-lines {
-  background-image: radial-gradient(circle, rgba(0,0,0,0.07) 1px, transparent 1px);
+  background-image: radial-gradient(circle, rgba(0,0,0,0.08) 1px, transparent 1px);
   background-size: 24px 24px;
 }
 
-/* ── Nav dot indicator ── */
+/* ── Active nav indicator ── */
 .nav-dot::after {
   content: '';
   display: block;
@@ -89,6 +89,14 @@ body {
   border-radius: 50%;
   background: var(--accent);
   margin: 2px auto 0;
+}
+
+/* ── Brand gradient text ── */
+.brand-gradient {
+  background: linear-gradient(135deg, var(--accent) 0%, #00A65A 60%, var(--accent-warm) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 /* ── Marquee ── */
@@ -103,18 +111,18 @@ body {
 }
 .marquee-inner:hover { animation-play-state: paused; }
 
-/* ── Brand gradient text ── */
-.brand-gradient {
-  background: linear-gradient(135deg, var(--accent) 0%, #00A65A 60%, var(--accent-warm) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+/* ── Card hover lift ── */
+.card-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.09);
 }
 
-/* ── Input reset ── */
+/* ── Input defaults ── */
 input, textarea, select {
-  font-family: var(--font-body);
-  font-size: inherit;
+  font-family: var(--font-body, system-ui, sans-serif);
 }
 input::placeholder { color: var(--text-tertiary); }
 
@@ -122,29 +130,3 @@ input::placeholder { color: var(--text-tertiary); }
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
-
-/* ── Animations ── */
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-@keyframes pulse-dot {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50%       { opacity: 0.5; transform: scale(0.8); }
-}
-.animate-fade-up  { animation: fadeUp 0.6s cubic-bezier(0.22,1,0.36,1) both; }
-.animate-fade-in  { animation: fadeIn 0.4s ease both; }
-.pulse-dot        { animation: pulse-dot 1.8s ease-in-out infinite; }
-
-/* ── Card hover lift ── */
-.card-lift {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-.card-lift:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 40px rgba(0,0,0,0.1);
-}
