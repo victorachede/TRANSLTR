@@ -1,184 +1,167 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, type Variants } from "framer-motion";
 import Link from "next/link";
-import { Check, ArrowRight, Mic, Zap } from "lucide-react";
+import { Check, ArrowRight, Zap } from "lucide-react";
+
+const pop: Variants = {
+  hidden: { opacity: 0, y: 20 },
+  show:   { opacity: 1, y: 0, transition: { duration: 0.45, ease: "easeOut" } },
+};
+const container: Variants = { hidden: {}, show: { transition: { staggerChildren: 0.08 } } };
+
+const fmt = (n: number) => n === 0 ? "₦0" : `₦${n.toLocaleString("en-NG")}`;
 
 const PLANS = [
   {
-    id: "free",
-    name: "Free",
+    id: "free", name: "Free",
     price: { monthly: 0, annual: 0 },
-    tagline: "For personal use and exploration.",
-    accent: false,
-    cta: "Start for free",
-    href: "/register",
-    features: [
-      "Solo translation mode",
-      "English ↔ Tiv & Idoma",
-      "50 translations / day",
-      "Session history (last 20)",
-      "Browser-native — no uploads",
-    ],
-    missing: ["Conversation mode", "Projector view", "Full dashboard analytics", "Priority support"],
+    desc: "For personal use and exploration.",
+    cta: "Start free", href: "/register", featured: false,
+    features: ["Solo translation mode", "English ↔ Tiv & Idoma", "50 translations / day", "Session history (last 20)", "Browser-native — no uploads"],
+    missing: ["Conversation mode", "Projector view", "Full analytics", "Priority support"],
   },
   {
-    id: "pro",
-    name: "Pro",
+    id: "pro", name: "Pro",
     price: { monthly: 7500, annual: 5800 },
-    tagline: "For individuals who translate every day.",
-    accent: true,
-    cta: "Start Pro trial",
-    href: "/register?plan=pro",
+    desc: "For individuals who translate every day.",
+    cta: "Start Pro trial", href: "/register?plan=pro", featured: true,
     badge: "Most popular",
-    features: [
-      "Everything in Free",
-      "Unlimited translations",
-      "Conversation mode",
-      "Projector view",
-      "Full dashboard & analytics",
-      "Translation export (CSV)",
-      "Email support",
-    ],
-    missing: ["Team workspace", "Priority support"],
+    features: ["Everything in Free", "Unlimited translations", "Conversation mode", "Projector view", "Full dashboard & analytics", "CSV export", "Email support"],
+    missing: ["Team workspace", "Admin dashboard"],
   },
   {
-    id: "team",
-    name: "Team",
+    id: "team", name: "Team",
     price: { monthly: 25000, annual: 19500 },
-    tagline: "For organisations, clinics, and schools.",
-    accent: false,
-    cta: "Contact us",
-    href: "mailto:hello@transltr.app",
-    features: [
-      "Everything in Pro",
-      "Up to 10 team members",
-      "Shared translation history",
-      "Admin dashboard",
-      "Custom language pairs",
-      "Priority support",
-      "SLA guarantee",
-    ],
+    desc: "For organisations, clinics, and schools.",
+    cta: "Contact us", href: "mailto:hello@transltr.app", featured: false,
+    features: ["Everything in Pro", "Up to 10 members", "Shared history", "Admin dashboard", "Custom language pairs", "Priority support", "SLA"],
     missing: [],
   },
 ];
 
-function fmt(n: number) {
-  if (n === 0) return "₦0";
-  return `₦${n.toLocaleString("en-NG")}`;
-}
-
-const stagger = { visible: { transition: { staggerChildren: 0.07 } } };
-const item = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] } } };
+const FAQ = [
+  { q: "Do I need a credit card to start?",  a: "No. The Free plan requires zero payment details." },
+  { q: "Are prices really in Naira?",         a: "Yes — 100%. Built for Benue State. All prices in NGN." },
+  { q: "What counts as one translation?",     a: "Each mic press that returns a result counts as one." },
+  { q: "Can I switch plans at any time?",     a: "Yes. Upgrade or downgrade instantly with prorated credits." },
+  { q: "Is my voice stored anywhere?",        a: "Never. Audio stays in your browser. Nothing is uploaded." },
+];
 
 export default function PricingPage() {
   const [annual, setAnnual] = useState(false);
 
   return (
-    <div className="min-h-screen pt-14" style={{ background: "var(--bg-base)" }}>
-      {/* ── Header ── */}
-      <section className="relative py-24 px-5 overflow-hidden">
-        <div className="absolute inset-0 grid-lines pointer-events-none" />
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] pointer-events-none"
-          style={{ background: "radial-gradient(ellipse at top, rgba(13,92,58,0.05), transparent 70%)" }} />
-
-        <div className="relative max-w-5xl mx-auto text-center">
-          <motion.span initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="label" style={{ color: "var(--accent)" }}>
+    <main style={{ background: "var(--bg)", minHeight: "100vh", paddingTop: 56 }}>
+      {/* Header */}
+      <section style={{ padding: "80px 24px 64px", textAlign: "center", position: "relative" }}>
+        <div style={{
+          position: "absolute", top: -100, left: "50%", transform: "translateX(-50%)",
+          width: 600, height: 400, borderRadius: "50%",
+          background: "radial-gradient(ellipse, rgba(0,216,121,0.06), transparent 70%)",
+          pointerEvents: "none",
+        }} />
+        <div style={{ position: "relative" }}>
+          <motion.p initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+            style={{ fontSize: 12, fontWeight: 700, color: "var(--green)", letterSpacing: "0.1em", textTransform: "uppercase" }}>
             Pricing
-          </motion.span>
-          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.6, ease: [0.22,1,0.36,1] }}
-            className="mt-4 text-5xl md:text-6xl leading-tight"
-            style={{ fontFamily: "var(--font-display)", fontStyle: "italic", letterSpacing: "-0.04em" }}>
-            Simple, honest<br />
-            <span className="brand-gradient">pricing.</span>
-          </motion.h1>
-          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.25 }}
-            className="mt-5 text-base max-w-md mx-auto leading-relaxed"
-            style={{ color: "var(--text-secondary)" }}>
-            Start free. Upgrade when you need more. All prices in Nigerian Naira. No hidden fees.
           </motion.p>
-
+          <motion.h1 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08, duration: 0.5 }}
+            style={{ marginTop: 16, fontSize: "clamp(36px, 6vw, 64px)", fontWeight: 800, letterSpacing: "-0.04em", lineHeight: 1.05 }}>
+            Simple, honest pricing.
+          </motion.h1>
+          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
+            style={{ marginTop: 16, fontSize: 16, color: "var(--fg-2)", maxWidth: 400, margin: "16px auto 0" }}>
+            All prices in Nigerian Naira. No hidden fees. No dollar conversion surprises.
+          </motion.p>
           {/* Toggle */}
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }}
-            className="mt-8 inline-flex items-center gap-1 p-1 rounded-xl"
-            style={{ border: "1px solid var(--border-default)", background: "var(--bg-surface)" }}>
-            <button onClick={() => setAnnual(false)}
-              className="px-4 py-2 rounded-lg text-xs font-bold transition-all"
-              style={{ background: !annual ? "var(--bg-elevated)" : "transparent", color: !annual ? "var(--text-primary)" : "var(--text-tertiary)", border: !annual ? "1px solid var(--border-default)" : "1px solid transparent" }}>
-              Monthly
-            </button>
-            <button onClick={() => setAnnual(true)}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all"
-              style={{ background: annual ? "var(--accent-dim)" : "transparent", color: annual ? "var(--accent)" : "var(--text-tertiary)", border: annual ? "1px solid var(--accent-border)" : "1px solid transparent" }}>
-              <Zap size={10} />Annual
-              <span className="lang-badge" style={{ background: "var(--accent)", color: "#fff", marginLeft: 4 }}>−23%</span>
-            </button>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
+            style={{ marginTop: 32, display: "inline-flex", padding: 4, borderRadius: 10, border: "1px solid var(--line)", background: "var(--bg-1)", gap: 4 }}>
+            {([false, true] as boolean[]).map(isAnnual => (
+              <button key={String(isAnnual)} onClick={() => setAnnual(isAnnual)}
+                style={{
+                  padding: "8px 20px", borderRadius: 7, fontSize: 13, fontWeight: 600, cursor: "pointer",
+                  border: "none", transition: "all 0.15s",
+                  background: annual === isAnnual ? "var(--bg-3)" : "transparent",
+                  color: annual === isAnnual ? "var(--fg)" : "var(--fg-3)",
+                  display: "flex", alignItems: "center", gap: 6,
+                }}>
+                {isAnnual && <Zap size={11} />}
+                {isAnnual ? "Annual" : "Monthly"}
+                {isAnnual && (
+                  <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 6px", borderRadius: 100, background: "var(--green)", color: "#000" }}>−23%</span>
+                )}
+              </button>
+            ))}
           </motion.div>
         </div>
       </section>
 
-      {/* ── Plans ── */}
-      <section className="px-5 pb-28">
-        <motion.div variants={stagger} initial="hidden" whileInView="visible" viewport={{ once: true }}
-          className="max-w-5xl mx-auto grid md:grid-cols-3 gap-5">
-          {PLANS.map((plan) => (
-            <motion.div key={plan.id} variants={item}
-              className="card-lift relative flex flex-col h-full rounded-2xl p-8"
+      {/* Plans */}
+      <section style={{ padding: "0 24px 80px" }}>
+        <motion.div variants={container} initial="hidden" whileInView="show" viewport={{ once: true }}
+          style={{ maxWidth: 1000, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 16 }}
+          className="grid-cols-1 md:grid-cols-3"
+        >
+          {PLANS.map(plan => (
+            <motion.div key={plan.id} variants={pop}
               style={{
-                background: plan.accent ? "var(--accent)" : "var(--bg-surface)",
-                border: `1px solid ${plan.accent ? "var(--accent)" : "var(--border-default)"}`,
+                position: "relative", borderRadius: 16, padding: 28, display: "flex", flexDirection: "column",
+                border: plan.featured ? "1px solid var(--green-line)" : "1px solid var(--line)",
+                background: plan.featured ? "var(--green-dim)" : "var(--bg-1)",
+                boxShadow: plan.featured ? "0 0 40px rgba(0,216,121,0.08)" : "none",
               }}>
               {plan.badge && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <span className="lang-badge" style={{ background: "var(--accent-warm)", color: "#fff", padding: "4px 12px" }}>
-                    {plan.badge}
-                  </span>
-                </div>
+                <span style={{
+                  position: "absolute", top: -12, left: "50%", transform: "translateX(-50%)",
+                  fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase",
+                  padding: "3px 12px", borderRadius: 100, background: "var(--green)", color: "#000",
+                }}>{plan.badge}</span>
               )}
-
-              <div className="space-y-1 mb-8">
-                <p className="text-xs font-bold tracking-widest uppercase"
-                  style={{ fontFamily: "var(--font-body)", color: plan.accent ? "rgba(255,255,255,0.7)" : "var(--text-tertiary)" }}>
+              <div>
+                <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: plan.featured ? "var(--green)" : "var(--fg-3)" }}>
                   {plan.name}
                 </p>
-                <div className="flex items-end gap-1.5">
-                  <span className="stat-num text-5xl" style={{ color: plan.accent ? "#fff" : "var(--text-primary)" }}>
+                <div style={{ marginTop: 8, display: "flex", alignItems: "flex-end", gap: 4 }}>
+                  <span style={{ fontSize: 40, fontWeight: 800, letterSpacing: "-0.04em", lineHeight: 1 }}>
                     {fmt(annual ? plan.price.annual : plan.price.monthly)}
                   </span>
                   {plan.price.monthly > 0 && (
-                    <span className="text-sm mb-1.5" style={{ color: plan.accent ? "rgba(255,255,255,0.6)" : "var(--text-tertiary)" }}>/ mo</span>
+                    <span style={{ fontSize: 13, color: "var(--fg-3)", marginBottom: 6 }}>/mo</span>
                   )}
                 </div>
-                <p className="text-xs leading-relaxed"
-                  style={{ color: plan.accent ? "rgba(255,255,255,0.7)" : "var(--text-secondary)" }}>{plan.tagline}</p>
+                <p style={{ marginTop: 6, fontSize: 13, color: "var(--fg-2)" }}>{plan.desc}</p>
               </div>
 
-              <div className="flex-1 space-y-3 mb-8">
+              <div style={{ marginTop: 24, flex: 1, display: "flex", flexDirection: "column", gap: 10 }}>
                 {plan.features.map(f => (
-                  <div key={f} className="flex items-start gap-2.5">
-                    <Check size={13} style={{ color: plan.accent ? "#fff" : "var(--accent)", marginTop: 1, flexShrink: 0 }} />
-                    <span className="text-xs leading-relaxed"
-                      style={{ color: plan.accent ? "#fff" : "var(--text-primary)" }}>{f}</span>
+                  <div key={f} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                    <Check size={13} color={plan.featured ? "var(--green)" : "var(--fg-2)"} style={{ marginTop: 1, flexShrink: 0 }} />
+                    <span style={{ fontSize: 13, color: "var(--fg)" }}>{f}</span>
                   </div>
                 ))}
                 {plan.missing.map(f => (
-                  <div key={f} className="flex items-start gap-2.5 opacity-30">
-                    <div className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 flex items-center justify-center">
-                      <div className="w-2 h-px" style={{ background: plan.accent ? "#fff" : "var(--text-tertiary)" }} />
+                  <div key={f} style={{ display: "flex", alignItems: "center", gap: 10, opacity: 0.25 }}>
+                    <div style={{ width: 13, height: 13, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <div style={{ width: 8, height: 1, background: "var(--fg-3)" }} />
                     </div>
-                    <span className="text-xs leading-relaxed" style={{ color: plan.accent ? "#fff" : "var(--text-tertiary)" }}>{f}</span>
+                    <span style={{ fontSize: 13, color: "var(--fg-3)" }}>{f}</span>
                   </div>
                 ))}
               </div>
 
               <Link href={plan.href}
-                className="flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all hover:opacity-90 active:scale-[0.98]"
                 style={{
-                  background: plan.accent ? "#fff" : "var(--accent)",
-                  color: plan.accent ? "var(--accent)" : "#fff",
-                  fontFamily: "var(--font-body)",
-                }}>
+                  marginTop: 28, display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                  padding: "12px", borderRadius: 10, fontSize: 14, fontWeight: 700,
+                  textDecoration: "none", transition: "opacity 0.15s",
+                  background: plan.featured ? "var(--green)" : "var(--bg-3)",
+                  color: plan.featured ? "#000" : "var(--fg)",
+                  border: plan.featured ? "none" : "1px solid var(--line)",
+                }}
+                onMouseEnter={e => (e.currentTarget.style.opacity = "0.85")}
+                onMouseLeave={e => (e.currentTarget.style.opacity = "1")}>
                 {plan.cta} <ArrowRight size={13} />
               </Link>
             </motion.div>
@@ -186,50 +169,23 @@ export default function PricingPage() {
         </motion.div>
       </section>
 
-      {/* ── FAQ ── */}
-      <section style={{ borderTop: "1px solid var(--border-subtle)", background: "var(--bg-surface)" }} className="py-24 px-5">
-        <div className="max-w-3xl mx-auto">
-          <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-            <span className="label" style={{ color: "var(--accent)" }}>FAQ</span>
-            <h2 className="mt-3 text-4xl leading-tight"
-              style={{ fontFamily: "var(--font-display)", fontStyle: "italic", letterSpacing: "-0.04em" }}>Common questions.</h2>
-          </motion.div>
-          <div className="mt-12 space-y-8">
-            {[
-              { q: "Do I need a credit card to start?", a: "No. The Free plan requires no payment details. You only need billing info when you upgrade." },
-              { q: "Are prices really in Naira?", a: "Yes — 100%. We built this for Benue State. All prices are in NGN with no dollar conversion surprises." },
-              { q: "What counts as one 'translation'?", a: "Each time you press the mic and receive a translated result counts as one translation." },
-              { q: "Can I switch plans at any time?", a: "Yes — upgrade or downgrade instantly. Prorated credits are applied automatically." },
-              { q: "Is my voice data stored?", a: "Never. Audio is processed entirely in your browser via the Web Speech API. Nothing is uploaded." },
-            ].map((faq, i) => (
+      {/* FAQ */}
+      <section style={{ padding: "64px 24px 80px", borderTop: "1px solid var(--line)", background: "var(--bg-1)" }}>
+        <div style={{ maxWidth: 640, margin: "0 auto" }}>
+          <p style={{ fontSize: 12, fontWeight: 700, color: "var(--green)", letterSpacing: "0.1em", textTransform: "uppercase" }}>FAQ</p>
+          <h2 style={{ marginTop: 12, fontSize: 36, fontWeight: 800, letterSpacing: "-0.04em" }}>Common questions.</h2>
+          <div style={{ marginTop: 40 }}>
+            {FAQ.map((f, i) => (
               <motion.div key={i} initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
                 transition={{ delay: i * 0.05 }}
-                style={{ borderTop: "1px solid var(--border-subtle)", paddingTop: "1.5rem" }}>
-                <p className="text-sm font-bold mb-2" style={{ fontFamily: "var(--font-body)", letterSpacing: "-0.01em" }}>{faq.q}</p>
-                <p className="text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>{faq.a}</p>
+                style={{ paddingTop: 24, marginTop: 24, borderTop: "1px solid var(--line)" }}>
+                <p style={{ fontSize: 15, fontWeight: 700, letterSpacing: "-0.01em" }}>{f.q}</p>
+                <p style={{ marginTop: 8, fontSize: 14, lineHeight: 1.7, color: "var(--fg-2)" }}>{f.a}</p>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
-
-      {/* ── CTA ── */}
-      <section className="py-24 px-5 text-center">
-        <motion.div initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-          <h2 className="text-4xl md:text-5xl leading-tight"
-            style={{ fontFamily: "var(--font-display)", fontStyle: "italic", letterSpacing: "-0.04em" }}>
-            Start translating today.<br />
-            <span className="brand-gradient">Free forever.</span>
-          </h2>
-          <div className="mt-8 flex flex-wrap gap-3 justify-center">
-            <Link href="/register"
-              className="flex items-center gap-2 px-6 py-3.5 rounded-xl text-sm font-bold hover:opacity-90"
-              style={{ background: "var(--accent)", color: "#fff", fontFamily: "var(--font-body)" }}>
-              <Mic size={14} />Create free account
-            </Link>
-          </div>
-        </motion.div>
-      </section>
-    </div>
+    </main>
   );
 }

@@ -1,132 +1,55 @@
 @import "tailwindcss";
 
-/* ── Design tokens ── */
 :root {
-  --bg-base:     #F9F8F4;
-  --bg-surface:  #FFFFFF;
-  --bg-elevated: #F0EDE3;
-  --bg-overlay:  #E8E3D8;
+  --bg:         #080808;
+  --bg-1:       #0f0f0f;
+  --bg-2:       #161616;
+  --bg-3:       #1d1d1d;
 
-  --border-subtle:  rgba(0,0,0,0.07);
-  --border-default: rgba(0,0,0,0.13);
-  --border-strong:  rgba(0,0,0,0.26);
+  --line:       rgba(255,255,255,0.07);
+  --line-2:     rgba(255,255,255,0.13);
 
-  --text-primary:   #0C0C0C;
-  --text-secondary: #404040;
-  --text-tertiary:  #888888;
-  --text-inverse:   #FFFFFF;
+  --fg:         #f2f2f2;
+  --fg-2:       rgba(242,242,242,0.60);
+  --fg-3:       rgba(242,242,242,0.35);
 
-  --accent:        #0D5C3A;
-  --accent-hover:  #0A4A2E;
-  --accent-warm:   #E8561A;
-  --accent-dim:    rgba(13,92,58,0.07);
-  --accent-border: rgba(13,92,58,0.18);
+  --green:      #00D879;
+  --green-dim:  rgba(0,216,121,0.10);
+  --green-line: rgba(0,216,121,0.22);
+
+  --font: var(--font-sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif);
 }
 
-/* ── Reset ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
 
-/* ── Base ── */
 body {
-  background: var(--bg-base);
-  color: var(--text-primary);
-  /* --font-body is injected by Next.js font variable on <html> */
-  font-family: var(--font-body, 'Plus Jakarta Sans', system-ui, sans-serif);
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ── Typography helpers ── */
-.display {
-  /* --font-display is injected by Next.js font variable on <html> */
-  font-family: var(--font-display, 'Instrument Serif', Georgia, serif);
-  font-style: italic;
-}
-
-.stat-num {
-  font-family: var(--font-display, 'Instrument Serif', Georgia, serif);
-  font-style: italic;
-  font-weight: 400;
-  line-height: 1;
-}
-
-.label {
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-tertiary);
-  font-family: var(--font-body, system-ui, sans-serif);
-}
-
-.lang-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  padding: 2px 8px;
-  border-radius: 100px;
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  font-family: var(--font-body, system-ui, sans-serif);
-  background: var(--bg-elevated);
-  color: var(--text-secondary);
-}
-
-/* ── Subtle dot grid ── */
-.grid-lines {
-  background-image: radial-gradient(circle, rgba(0,0,0,0.08) 1px, transparent 1px);
-  background-size: 24px 24px;
-}
-
-/* ── Active nav indicator ── */
-.nav-dot::after {
+/* Noise overlay on cards */
+.noise::after {
   content: '';
-  display: block;
-  width: 3px;
-  height: 3px;
-  border-radius: 50%;
-  background: var(--accent);
-  margin: 2px auto 0;
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
 }
 
-/* ── Brand gradient text ── */
-.brand-gradient {
-  background: linear-gradient(135deg, var(--accent) 0%, #00A65A 60%, var(--accent-warm) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* ── Marquee ── */
-@keyframes marquee {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-50%); }
-}
-.marquee-inner {
-  display: flex;
-  width: max-content;
-  animation: marquee 36s linear infinite;
-}
-.marquee-inner:hover { animation-play-state: paused; }
-
-/* ── Card hover lift ── */
-.card-lift {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-.card-lift:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 40px rgba(0,0,0,0.09);
-}
-
-/* ── Input defaults ── */
-input, textarea, select {
-  font-family: var(--font-body, system-ui, sans-serif);
-}
-input::placeholder { color: var(--text-tertiary); }
-
-/* ── Scrollbar ── */
-::-webkit-scrollbar { width: 6px; height: 6px; }
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
+::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 4px; }
+
+/* Marquee */
+@keyframes scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.marquee { animation: scroll 32s linear infinite; display: flex; width: max-content; }
+.marquee:hover { animation-play-state: paused; }
+
+/* Glow */
+.green-glow { box-shadow: 0 0 0 1px var(--green-line), 0 0 40px rgba(0,216,121,0.12); }

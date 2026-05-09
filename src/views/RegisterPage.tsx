@@ -5,176 +5,170 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { Eye, EyeOff, Check } from "lucide-react";
 
-const STRENGTHS = [
-  { label: "8+ chars", test: (p: string) => p.length >= 8 },
-  { label: "Uppercase", test: (p: string) => /[A-Z]/.test(p) },
-  { label: "Number", test: (p: string) => /[0-9]/.test(p) },
+const CHECKS = [
+  { label: "8+ characters", ok: (p: string) => p.length >= 8 },
+  { label: "Uppercase",     ok: (p: string) => /[A-Z]/.test(p) },
+  { label: "Number",        ok: (p: string) => /[0-9]/.test(p) },
 ];
 
 export default function RegisterPage() {
   const [showPw, setShowPw] = useState(false);
-  const [password, setPassword] = useState("");
+  const [pw, setPw] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const submit = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setTimeout(() => setLoading(false), 1200);
   };
 
-  const strength = STRENGTHS.filter(s => s.test(password)).length;
+  const strength = CHECKS.filter(c => c.ok(pw)).length;
+  const strengthColor = strength === 3 ? "var(--green)" : strength === 2 ? "#f59e0b" : "#ef4444";
+
+  const inputStyle: React.CSSProperties = {
+    width: "100%", padding: "10px 14px", borderRadius: 9, fontSize: 14,
+    background: "var(--bg-2)", border: "1px solid var(--line)", color: "var(--fg)",
+    outline: "none", transition: "border-color 0.15s", fontFamily: "var(--font)",
+  };
 
   return (
-    <div className="min-h-screen flex" style={{ background: "var(--bg-base)" }}>
-      {/* ── Left panel ── */}
-      <div className="hidden lg:flex flex-col justify-between w-[460px] shrink-0 p-12 relative overflow-hidden"
-        style={{ background: "var(--bg-elevated)", borderRight: "1px solid var(--border-default)" }}>
-        <div className="absolute inset-0 grid-lines pointer-events-none" />
-
-        <Link href="/" className="relative flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm"
-            style={{ background: "var(--accent)", color: "#fff", fontFamily: "var(--font-display)", fontStyle: "italic" }}>T</div>
-          <span className="font-bold" style={{ fontFamily: "var(--font-body)", color: "var(--text-primary)", letterSpacing: "-0.02em" }}>TRANSLTR</span>
+    <div style={{ minHeight: "100vh", display: "flex", background: "var(--bg)" }}>
+      {/* Left */}
+      <div style={{
+        width: 440, flexShrink: 0, padding: 48, display: "flex", flexDirection: "column",
+        justifyContent: "space-between", borderRight: "1px solid var(--line)", background: "var(--bg-1)",
+        position: "relative", overflow: "hidden",
+      }} className="hidden lg:flex">
+        <div style={{
+          position: "absolute", bottom: -80, right: -80, width: 320, height: 320, borderRadius: "50%",
+          background: "radial-gradient(circle, rgba(0,216,121,0.06), transparent 70%)",
+          pointerEvents: "none",
+        }} />
+        <Link href="/" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
+          <span style={{ width: 26, height: 26, borderRadius: 6, background: "var(--green)", color: "#000", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 800 }}>T</span>
+          <span style={{ fontSize: 14, fontWeight: 700, color: "var(--fg)", letterSpacing: "-0.02em" }}>TRANSLTR</span>
         </Link>
-
-        <div className="relative space-y-10">
-          <div>
-            <h2 className="text-4xl leading-tight"
-              style={{ fontFamily: "var(--font-display)", fontStyle: "italic", letterSpacing: "-0.04em" }}>
-              Join thousands already<br />
-              <span className="brand-gradient">breaking language barriers.</span>
-            </h2>
-            <p className="mt-3 text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-              Free account. No credit card. Takes 30 seconds.
-            </p>
-          </div>
-
-          <div className="space-y-6">
+        <div style={{ position: "relative" }}>
+          <h2 style={{ fontSize: 34, fontWeight: 800, letterSpacing: "-0.04em", lineHeight: 1.1 }}>
+            Join thousands breaking<br />
+            <span style={{ background: "linear-gradient(90deg, var(--green), #00ffaa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
+              language barriers.
+            </span>
+          </h2>
+          <div style={{ marginTop: 32, display: "flex", flexDirection: "column", gap: 20 }}>
             {[
-              { n: "1", t: "Create your account", b: "Just an email and password." },
-              { n: "2", t: "Open the translator", b: "Click Translator and start speaking." },
-              { n: "3", t: "Track your history", b: "Every translation saved to your dashboard." },
+              { n: "1", t: "Create your account", b: "Email and password. 30 seconds." },
+              { n: "2", t: "Open the translator",  b: "Start speaking right away." },
+              { n: "3", t: "Track your history",   b: "Every translation saved." },
             ].map(s => (
-              <div key={s.n} className="flex gap-4">
-                <span className="stat-num text-2xl w-7 shrink-0" style={{ color: "var(--border-strong)" }}>{s.n}</span>
+              <div key={s.n} style={{ display: "flex", gap: 16 }}>
+                <span style={{ fontSize: 28, fontWeight: 800, color: "var(--bg-3)", letterSpacing: "-0.04em", lineHeight: 1, width: 28, flexShrink: 0 }}>{s.n}</span>
                 <div>
-                  <p className="text-sm font-bold" style={{ letterSpacing: "-0.01em" }}>{s.t}</p>
-                  <p className="text-xs mt-0.5 leading-relaxed" style={{ color: "var(--text-secondary)" }}>{s.b}</p>
+                  <p style={{ fontSize: 14, fontWeight: 700 }}>{s.t}</p>
+                  <p style={{ fontSize: 13, color: "var(--fg-2)", marginTop: 2 }}>{s.b}</p>
                 </div>
               </div>
             ))}
           </div>
         </div>
-
-        <p className="relative label">© {new Date().getFullYear()} TRANSLTR · Built for Benue State</p>
+        <p style={{ fontSize: 12, color: "var(--fg-3)", position: "relative" }}>© {new Date().getFullYear()} TRANSLTR · Benue State</p>
       </div>
 
-      {/* ── Form ── */}
-      <div className="flex-1 flex items-center justify-center px-5 py-20">
-        <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: [0.22,1,0.36,1] }}
-          className="w-full max-w-sm">
-
-          <Link href="/" className="lg:hidden flex items-center gap-2 mb-10">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm"
-              style={{ background: "var(--accent)", color: "#fff", fontFamily: "var(--font-display)", fontStyle: "italic" }}>T</div>
-            <span className="font-bold" style={{ fontFamily: "var(--font-body)", letterSpacing: "-0.02em" }}>TRANSLTR</span>
+      {/* Right */}
+      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "80px 24px" }}>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
+          style={{ width: "100%", maxWidth: 360 }}>
+          <Link href="/" className="lg:hidden" style={{ display: "inline-flex", alignItems: "center", gap: 8, textDecoration: "none", marginBottom: 40 }}>
+            <span style={{ width: 26, height: 26, borderRadius: 6, background: "var(--green)", color: "#000", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 800 }}>T</span>
+            <span style={{ fontSize: 14, fontWeight: 700, color: "var(--fg)" }}>TRANSLTR</span>
           </Link>
 
-          <h1 className="text-2xl font-bold" style={{ fontFamily: "var(--font-body)", letterSpacing: "-0.03em" }}>Create your account</h1>
-          <p className="mt-1.5 text-sm" style={{ color: "var(--text-secondary)" }}>
+          <h1 style={{ fontSize: 26, fontWeight: 800, letterSpacing: "-0.03em" }}>Create your account</h1>
+          <p style={{ marginTop: 6, fontSize: 14, color: "var(--fg-2)" }}>
             Already have one?{" "}
-            <Link href="/login" style={{ color: "var(--accent)" }} className="font-semibold hover:underline">Sign in</Link>
+            <Link href="/login" style={{ color: "var(--green)", textDecoration: "none", fontWeight: 600 }}>Sign in</Link>
           </p>
 
-          <form onSubmit={handleSubmit} className="mt-8 space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              {[["fname","First name","Ada"], ["lname","Last name","Oche"]].map(([id,label,ph]) => (
-                <div key={id} className="space-y-1.5">
-                  <label className="label" htmlFor={id}>{label}</label>
+          <form onSubmit={submit} style={{ marginTop: 32, display: "flex", flexDirection: "column", gap: 14 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              {[["fname","First name","Ada"], ["lname","Last name","Oche"]].map(([id, label, ph]) => (
+                <div key={id}>
+                  <label style={{ fontSize: 12, fontWeight: 600, color: "var(--fg-3)", letterSpacing: "0.06em", textTransform: "uppercase", display: "block", marginBottom: 6 }}>{label}</label>
                   <input id={id} type="text" required placeholder={ph}
-                    className="w-full px-4 py-3 rounded-xl text-sm outline-none transition-all"
-                    style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)", color: "var(--text-primary)" }}
-                    onFocus={e => e.currentTarget.style.borderColor = "var(--accent)"}
-                    onBlur={e => e.currentTarget.style.borderColor = "var(--border-default)"}
-                  />
+                    style={inputStyle}
+                    onFocus={e => (e.currentTarget.style.borderColor = "var(--green)")}
+                    onBlur={e => (e.currentTarget.style.borderColor = "var(--line)")} />
                 </div>
               ))}
             </div>
-
-            <div className="space-y-1.5">
-              <label className="label" htmlFor="email">Email</label>
-              <input id="email" type="email" required placeholder="you@example.com"
-                className="w-full px-4 py-3 rounded-xl text-sm outline-none transition-all"
-                style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)", color: "var(--text-primary)" }}
-                onFocus={e => e.currentTarget.style.borderColor = "var(--accent)"}
-                onBlur={e => e.currentTarget.style.borderColor = "var(--border-default)"}
-              />
+            <div>
+              <label style={{ fontSize: 12, fontWeight: 600, color: "var(--fg-3)", letterSpacing: "0.06em", textTransform: "uppercase", display: "block", marginBottom: 6 }}>Email</label>
+              <input type="email" required placeholder="you@example.com"
+                style={inputStyle}
+                onFocus={e => (e.currentTarget.style.borderColor = "var(--green)")}
+                onBlur={e => (e.currentTarget.style.borderColor = "var(--line)")} />
             </div>
-
-            <div className="space-y-1.5">
-              <label className="label" htmlFor="password">Password</label>
-              <div className="relative">
-                <input id="password" type={showPw ? "text" : "password"} required
-                  placeholder="Create a strong password" value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 pr-11 rounded-xl text-sm outline-none transition-all"
-                  style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)", color: "var(--text-primary)" }}
-                  onFocus={e => e.currentTarget.style.borderColor = "var(--accent)"}
-                  onBlur={e => e.currentTarget.style.borderColor = "var(--border-default)"}
-                />
+            <div>
+              <label style={{ fontSize: 12, fontWeight: 600, color: "var(--fg-3)", letterSpacing: "0.06em", textTransform: "uppercase", display: "block", marginBottom: 6 }}>Password</label>
+              <div style={{ position: "relative" }}>
+                <input type={showPw ? "text" : "password"} required placeholder="Create a strong password"
+                  value={pw} onChange={e => setPw(e.target.value)}
+                  style={{ ...inputStyle, paddingRight: 40 }}
+                  onFocus={e => (e.currentTarget.style.borderColor = "var(--green)")}
+                  onBlur={e => (e.currentTarget.style.borderColor = "var(--line)")} />
                 <button type="button" onClick={() => setShowPw(s => !s)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2"
-                  style={{ color: "var(--text-tertiary)" }}>
+                  style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--fg-3)", padding: 0 }}>
                   {showPw ? <EyeOff size={15} /> : <Eye size={15} />}
                 </button>
               </div>
-
-              {password.length > 0 && (
-                <div className="space-y-2 pt-1">
-                  <div className="flex gap-1">
-                    {[0,1,2].map(i => (
-                      <div key={i} className="h-1 flex-1 rounded-full transition-all duration-300"
-                        style={{ background: i < strength ? (strength === 3 ? "var(--accent)" : strength === 2 ? "#f59e0b" : "var(--accent-warm)") : "var(--border-default)" }} />
+              {pw.length > 0 && (
+                <div style={{ marginTop: 10 }}>
+                  <div style={{ display: "flex", gap: 4 }}>
+                    {[0, 1, 2].map(i => (
+                      <div key={i} style={{ flex: 1, height: 3, borderRadius: 2, transition: "background 0.3s", background: i < strength ? strengthColor : "var(--bg-3)" }} />
                     ))}
                   </div>
-                  <div className="flex gap-3 flex-wrap">
-                    {STRENGTHS.map(s => (
-                      <div key={s.label} className="flex items-center gap-1">
-                        <Check size={10} style={{ color: s.test(password) ? "var(--accent)" : "var(--text-tertiary)" }} />
-                        <span style={{ fontSize: "0.6rem", color: s.test(password) ? "var(--accent)" : "var(--text-tertiary)", fontFamily: "var(--font-body)", letterSpacing: "0.04em" }}>
-                          {s.label}
-                        </span>
+                  <div style={{ marginTop: 8, display: "flex", gap: 16 }}>
+                    {CHECKS.map(c => (
+                      <div key={c.label} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                        <Check size={10} color={c.ok(pw) ? "var(--green)" : "var(--fg-3)"} />
+                        <span style={{ fontSize: 11, color: c.ok(pw) ? "var(--green)" : "var(--fg-3)" }}>{c.label}</span>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
             </div>
-
-            <p className="text-xs leading-relaxed" style={{ color: "var(--text-tertiary)" }}>
-              By creating an account you agree to our{" "}
-              <Link href="/terms" style={{ color: "var(--accent)" }} className="hover:underline">Terms</Link>
+            <p style={{ fontSize: 12, color: "var(--fg-3)", lineHeight: 1.5 }}>
+              By signing up you agree to our{" "}
+              <Link href="/terms" style={{ color: "var(--green)", textDecoration: "none" }}>Terms</Link>
               {" "}and{" "}
-              <Link href="/privacy" style={{ color: "var(--accent)" }} className="hover:underline">Privacy Policy</Link>.
+              <Link href="/privacy" style={{ color: "var(--green)", textDecoration: "none" }}>Privacy Policy</Link>.
             </p>
-
             <button type="submit" disabled={loading}
-              className="w-full py-3.5 rounded-xl text-sm font-bold transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-50"
-              style={{ background: "var(--accent)", color: "#fff", fontFamily: "var(--font-body)" }}>
+              style={{
+                width: "100%", padding: "12px", borderRadius: 9, fontSize: 14, fontWeight: 700,
+                background: "var(--green)", color: "#000", border: "none", cursor: "pointer",
+                opacity: loading ? 0.7 : 1, transition: "opacity 0.15s",
+              }}>
               {loading ? "Creating account…" : "Create free account"}
             </button>
           </form>
 
-          <div className="relative flex items-center gap-3 my-6">
-            <div className="flex-1 h-px" style={{ background: "var(--border-default)" }} />
-            <span className="label">or</span>
-            <div className="flex-1 h-px" style={{ background: "var(--border-default)" }} />
+          <div style={{ margin: "24px 0", display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{ flex: 1, height: 1, background: "var(--line)" }} />
+            <span style={{ fontSize: 12, color: "var(--fg-3)" }}>or</span>
+            <div style={{ flex: 1, height: 1, background: "var(--line)" }} />
           </div>
 
           <button type="button"
-            className="w-full flex items-center justify-center gap-3 py-3 rounded-xl text-sm font-semibold transition-all hover:bg-[var(--bg-elevated)]"
-            style={{ border: "1px solid var(--border-default)", color: "var(--text-primary)", background: "var(--bg-surface)" }}>
+            style={{
+              width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
+              padding: "11px", borderRadius: 9, fontSize: 14, fontWeight: 600, cursor: "pointer",
+              border: "1px solid var(--line)", background: "var(--bg-2)", color: "var(--fg)", transition: "border-color 0.15s",
+            }}
+            onMouseEnter={e => (e.currentTarget.style.borderColor = "var(--line-2)")}
+            onMouseLeave={e => (e.currentTarget.style.borderColor = "var(--line)")}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
               <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>

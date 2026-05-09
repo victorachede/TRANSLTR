@@ -2,101 +2,91 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Mic, LayoutDashboard, ExternalLink, LogIn, Menu, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { Menu, X } from "lucide-react";
+
+const LINKS = [
+  { href: "/translator", label: "Translator" },
+  { href: "/dashboard",  label: "Dashboard"  },
+  { href: "/pricing",    label: "Pricing"     },
+];
 
 export default function Nav() {
-  const pathname = usePathname();
+  const path = usePathname();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
-  useEffect(() => { setOpen(false); }, [pathname]);
+  useEffect(() => { setOpen(false); }, [path]);
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    const fn = () => setScrolled(window.scrollY > 12);
+    window.addEventListener("scroll", fn, { passive: true });
+    return () => window.removeEventListener("scroll", fn);
   }, []);
 
-  if (pathname === "/projector") return null;
-
-  const links = [
-    { href: "/translator", label: "Translator", icon: Mic },
-    { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  ];
+  if (path === "/projector") return null;
 
   return (
     <>
       <header
-        className="fixed top-0 left-0 right-0 z-50 transition-all duration-200"
+        className="fixed top-0 inset-x-0 z-50 transition-all duration-300"
         style={{
-          background: scrolled ? "rgba(249,248,244,0.92)" : "rgba(249,248,244,0.7)",
-          backdropFilter: "blur(16px)",
-          WebkitBackdropFilter: "blur(16px)",
-          borderBottom: scrolled ? "1px solid var(--border-default)" : "1px solid transparent",
+          borderBottom: scrolled ? "1px solid var(--line)" : "1px solid transparent",
+          background: scrolled ? "rgba(8,8,8,0.88)" : "transparent",
+          backdropFilter: scrolled ? "blur(20px)" : "none",
         }}
       >
-        <div className="max-w-6xl mx-auto px-5 h-14 flex items-center justify-between">
+        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 24px", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 group">
-            <div
-              className="w-7 h-7 rounded-md flex items-center justify-center text-xs font-bold transition-transform group-hover:scale-95"
-              style={{ background: "var(--accent)", color: "#fff", fontFamily: "var(--font-display)", fontStyle: "italic" }}
-            >T</div>
-            <span className="text-sm font-bold tracking-tight hidden sm:block" style={{ fontFamily: "var(--font-body)", color: "var(--text-primary)", letterSpacing: "-0.02em" }}>
-              TRANSLTR
-            </span>
+          <Link href="/" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
+            <span style={{
+              width: 26, height: 26, borderRadius: 6,
+              background: "var(--green)", color: "#000",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 13, fontWeight: 800, letterSpacing: "-0.02em",
+            }}>T</span>
+            <span style={{ fontSize: 14, fontWeight: 700, color: "var(--fg)", letterSpacing: "-0.02em" }}>TRANSLTR</span>
           </Link>
 
-          {/* Desktop nav */}
-          <nav className="hidden md:flex items-center gap-1">
-            {links.map(({ href, label, icon: Icon }) => {
-              const active = pathname === href;
+          {/* Desktop */}
+          <nav style={{ display: "flex", alignItems: "center", gap: 2 }} className="hidden md:flex">
+            {LINKS.map(({ href, label }) => {
+              const active = path === href;
               return (
-                <Link key={href} href={href}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
-                  style={{
-                    color: active ? "var(--accent)" : "var(--text-secondary)",
-                    background: active ? "var(--accent-dim)" : "transparent",
-                    fontFamily: "var(--font-body)",
-                  }}>
-                  <Icon size={12} />{label}
+                <Link key={href} href={href} style={{
+                  padding: "6px 14px", borderRadius: 8, fontSize: 13, fontWeight: 500,
+                  color: active ? "var(--fg)" : "var(--fg-2)",
+                  background: active ? "var(--bg-2)" : "transparent",
+                  border: active ? "1px solid var(--line)" : "1px solid transparent",
+                  textDecoration: "none", transition: "all 0.15s",
+                }}>
+                  {label}
                 </Link>
               );
             })}
-
-            <Link href="/projector" target="_blank"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-colors ml-1"
-              style={{ color: "var(--text-tertiary)", fontFamily: "var(--font-mono)", fontSize: "0.65rem", letterSpacing: "0.04em" }}>
-              <ExternalLink size={10} />LIVE VIEW
+            <Link href="/projector" target="_blank" style={{
+              padding: "6px 14px", borderRadius: 8, fontSize: 12, fontWeight: 500,
+              color: "var(--fg-3)", textDecoration: "none", letterSpacing: "0.04em",
+              marginLeft: 4,
+            }}>
+              LIVE ↗
             </Link>
-
-            <div style={{ width: "1px", height: "18px", background: "var(--border-default)", margin: "0 6px" }} />
-
-            <Link href="/pricing"
-              className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
-              style={{
-                color: pathname === "/pricing" ? "var(--accent)" : "var(--text-secondary)",
-                background: pathname === "/pricing" ? "var(--accent-dim)" : "transparent",
-              }}>
-              Pricing
-            </Link>
-
-            <Link href="/login"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:opacity-90 active:scale-[0.97] ml-1"
-              style={{ background: "var(--accent)", color: "#fff", fontFamily: "var(--font-body)" }}>
-              <LogIn size={11} />Sign in
+            <div style={{ width: 1, height: 18, background: "var(--line)", margin: "0 8px" }} />
+            <Link href="/login" style={{
+              padding: "6px 14px", borderRadius: 8, fontSize: 13, fontWeight: 600,
+              color: "#000", background: "var(--green)", textDecoration: "none",
+              transition: "opacity 0.15s",
+            }}
+              onMouseEnter={e => (e.currentTarget.style.opacity = "0.88")}
+              onMouseLeave={e => (e.currentTarget.style.opacity = "1")}>
+              Sign in
             </Link>
           </nav>
 
-          {/* Mobile hamburger */}
-          <button
-            className="md:hidden p-2 rounded-lg transition-colors"
-            style={{ color: "var(--text-primary)", background: open ? "var(--bg-elevated)" : "transparent" }}
-            onClick={() => setOpen(o => !o)}
-            aria-label="Toggle menu"
-          >
-            {open ? <X size={18} /> : <Menu size={18} />}
+          {/* Mobile toggle */}
+          <button className="md:hidden" onClick={() => setOpen(o => !o)}
+            style={{ background: "none", border: "none", color: "var(--fg-2)", cursor: "pointer", padding: 4 }}>
+            {open ? <X size={20} /> : <Menu size={20} />}
           </button>
         </div>
       </header>
@@ -105,41 +95,31 @@ export default function Nav() {
       <AnimatePresence>
         {open && (
           <>
-            <motion.div
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="fixed inset-0 z-40 md:hidden"
-              style={{ background: "rgba(0,0,0,0.15)", top: "56px" }}
-              onClick={() => setOpen(false)}
-            />
-            <motion.nav
-              initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.18, ease: "easeOut" }}
-              className="fixed left-0 right-0 z-40 md:hidden px-4 pb-4"
-              style={{ top: "57px" }}
-            >
-              <div className="rounded-xl overflow-hidden"
-                style={{ background: "var(--bg-surface)", border: "1px solid var(--border-default)", boxShadow: "0 8px 40px rgba(0,0,0,0.12)" }}>
-                {[...links, { href: "/pricing", label: "Pricing", icon: null }, { href: "/projector", label: "Live View ↗", icon: null }].map(({ href, label, icon: Icon }, i) => (
-                  <Link key={href} href={href}
-                    className="flex items-center gap-3 px-5 py-4 text-sm font-semibold transition-colors"
-                    style={{
-                      color: pathname === href ? "var(--accent)" : "var(--text-primary)",
-                      background: pathname === href ? "var(--accent-dim)" : "transparent",
-                      borderBottom: i < 3 ? "1px solid var(--border-subtle)" : "none",
-                    }}>
-                    {Icon && <Icon size={15} style={{ color: "var(--text-tertiary)" }} />}
-                    {label}
-                  </Link>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="fixed inset-0 md:hidden" style={{ top: 56, background: "rgba(0,0,0,0.6)", zIndex: 40 }}
+              onClick={() => setOpen(false)} />
+            <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }}
+              transition={{ duration: 0.15 }}
+              className="fixed inset-x-0 md:hidden"
+              style={{ top: 57, zIndex: 41, padding: "0 16px 16px" }}>
+              <div style={{ background: "var(--bg-1)", border: "1px solid var(--line)", borderRadius: 12, overflow: "hidden" }}>
+                {LINKS.map(({ href, label }, i) => (
+                  <Link key={href} href={href} style={{
+                    display: "block", padding: "14px 20px", fontSize: 15, fontWeight: 500,
+                    color: path === href ? "var(--green)" : "var(--fg)",
+                    borderBottom: i < LINKS.length - 1 ? "1px solid var(--line)" : "none",
+                    textDecoration: "none",
+                  }}>{label}</Link>
                 ))}
-                <div className="p-3" style={{ borderTop: "1px solid var(--border-subtle)" }}>
-                  <Link href="/login"
-                    className="flex items-center justify-center gap-2 w-full py-3 rounded-lg text-sm font-bold"
-                    style={{ background: "var(--accent)", color: "#fff" }}>
-                    <LogIn size={14} />Sign in
-                  </Link>
+                <div style={{ padding: 12 }}>
+                  <Link href="/login" style={{
+                    display: "block", textAlign: "center", padding: "12px", borderRadius: 8,
+                    background: "var(--green)", color: "#000", fontSize: 14, fontWeight: 700,
+                    textDecoration: "none",
+                  }}>Sign in</Link>
                 </div>
               </div>
-            </motion.nav>
+            </motion.div>
           </>
         )}
       </AnimatePresence>
