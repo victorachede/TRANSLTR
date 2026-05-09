@@ -160,7 +160,7 @@ export default function DashboardPage() {
               <p style={{ marginTop:6, fontSize:14, color:"var(--fg-2)" }}>Start translating to see analytics and history here.</p>
             </div>
             <Link href="/translator" style={{ display:"flex", alignItems:"center", gap:8, padding:"11px 22px", borderRadius:9, fontSize:14, fontWeight:700, background:"var(--green)", color:"#000", textDecoration:"none" }}>
-              <Mic size={14} />Go to Translator <ArrowRight size:={13} />
+              <Mic size={14} />Go to Translator <ArrowRight size={13} />
             </Link>
           </motion.div>
         ) : tab === "overview" ? (
